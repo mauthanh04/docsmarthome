@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Assistant Masterclass: Kiến trúc & Bản chất</title>
+    <!-- Tailwind CSS cho UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Tùy chỉnh Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        
+        .content-section { scroll-margin-top: 5rem; }
+        
+        .active-nav-item {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border-left: 4px solid #0284c7;
+            font-weight: 600;
+        }
+
+        /* Định dạng bảng */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+        th, td { border: 1px solid #e2e8f0; padding: 0.75rem; text-align: left; }
+        th { background-color: #f8fafc; font-weight: 600; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { ha: { blue: '#03a9f4', dark: '#111827', light: '#f9fafb' } } } }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 flex h-screen overflow-hidden">
+
+    <!-- Main Content -->
+    <main class="flex-1 w-full h-full overflow-y-auto bg-gray-50 p-6 md:p-10 scroll-smooth" id="main-content">
+        <div class="max-w-5xl mx-auto space-y-16 pb-32">
+
+            <!-- Hero Section -->
+            <header class="text-center pb-10 border-b border-gray-200">
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Hiểu Sâu Bản Chất <span class="text-ha-blue">Home Assistant</span></h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Tài liệu kỹ thuật chi tiết nhất giúp bạn hiểu tường tận kiến trúc hệ thống, giao thức, luồng dữ liệu và thiết kế nhà thông minh từ con số không đến cấp độ chuyên gia.</p>
+            </header>
+
+            <!-- ===================== CHƯƠNG 1 ===================== -->
+
+            <!-- PHẦN 1 -->
+            <section id="phan1" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 1: Nhà thông minh là gì? (Bản chất sâu xa)</h2>
+                
+                <div class="prose max-w-none text-gray-700">
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-5 mb-6 text-gray-800">
+                        <p class="text-lg font-semibold mb-2">Sự hiểu lầm lớn nhất:</p>
+                        <p>Nhiều người nghĩ rằng thay công tắc cơ bằng công tắc WiFi, sau đó cầm điện thoại lên bấm bật/tắt là có "nhà thông minh". Thực ra, đó chỉ là <strong>"Nhà điều khiển từ xa" (Remote Control Home)</strong>. Nếu bạn vẫn phải tự tay can thiệp, nó chưa hề thông minh!</p>
+                    </div>
+
+                    <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-800">1. Triết lý cốt lõi: Ngôi nhà "Vô hình" và "Giảm tải nhận thức"</h3>
+                    <p class="mb-4">Mục đích tối thượng của nhà thông minh không phải là để bạn khoe công nghệ với bạn bè, mà là để <strong>mua lại thời gian</strong> và <strong>giảm tải nhận thức (Cognitive Load)</strong>.</p>
+                    <ul class="list-disc pl-5 space-y-2 mb-6">
+                        <li><strong>Giảm tải nhận thức:</strong> Mỗi ngày bạn không cần phải nhớ "Mình đã khóa cửa chưa?", "Quạt phòng khách tắt chưa?", "Tưới cây chưa?". Ngôi nhà tự lo những việc lặt vặt đó, giải phóng bộ não của bạn cho những việc sáng tạo hơn.</li>
+                        <li><strong>Nguyên tắc Zero UI (Không giao diện):</strong> Giao diện tốt nhất là không có giao diện nào cả. Một hệ thống smart home xuất sắc là hệ thống bạn <em>gần như quên mất sự tồn tại của nó</em>. Bạn không cần mở App, không cần ra lệnh bằng giọng nói. Bạn cứ sống bình thường, và ngôi nhà tự phục vụ bạn.</li>
+                    </ul>
+
+                    <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-800">2. Ba cấp độ của một ngôi nhà (Sự tiến hóa)</h3>
+                    <div class="grid md:grid-cols-3 gap-4 mb-8">
+                        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                            <div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center font-bold text-gray-600 mb-3">1</div>
+                            <h4 class="font-bold text-gray-900 mb-2">Manual (Thủ công)</h4>
+                            <p class="text-sm text-gray-600">Đến tận nơi, dùng tay gạt công tắc để bật đèn. Hoàn toàn dùng sức người.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600 mb-3">2</div>
+                            <h4 class="font-bold text-gray-900 mb-2">Connected (Kết nối)</h4>
+                            <p class="text-sm text-gray-600">Dùng App trên điện thoại hoặc giọng nói để ra lệnh. Tiện hơn, nhưng não người vẫn phải tự ra quyết định "lúc nào cần bật".</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-lg shadow-sm border border-blue-400 relative">
+                            <div class="absolute -top-3 -right-3 bg-yellow-400 text-xs font-bold px-2 py-1 rounded shadow">Mục tiêu</div>
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center font-bold text-white mb-3">3</div>
+                            <h4 class="font-bold text-blue-900 mb-2">Smart (Thông minh)</h4>
+                            <p class="text-sm text-gray-700">Nhà <strong>tự nhận thức ngữ cảnh</strong>. Bạn bước vào vệ sinh ban đêm, đèn tự sáng mờ 10%. Đi ra tự tắt. Nhà tự làm thay bạn.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-800">3. Ngữ cảnh (Context) - Chìa khóa tạo nên "Trí thông minh"</h3>
+                    <p class="mb-4">Một thiết bị cảm biến đơn lẻ thực chất rất "ngốc". Bí quyết của tự động hóa nằm ở việc kết hợp nhiều dữ liệu để hiểu được <strong>Ngữ cảnh</strong> của người dùng.</p>
+                    <div class="bg-gray-100 p-5 rounded-lg mb-8 border border-gray-200">
+                        <p class="text-sm italic mb-4 text-gray-600">Ví dụ: Nhà bạn có một Cảm biến chuyển động (PIR).</p>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex items-center space-x-2"><span class="text-red-500 font-bold">❌ Ngốc nghếch:</span> <span>Có chuyển động ➔ Bật đèn. (Mèo chạy qua đèn cũng bật, nửa đêm bạn lật người đèn cũng bật).</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-green-600 font-bold">✅ Thông minh:</span> <span>Có chuyển động + Sau 23h đêm + Điện thoại đang cắm sạc + TV đã tắt ➔ <strong>Ngữ cảnh: Đang ngủ.</strong> (Mèo chạy qua không bật đèn, hoặc chỉ bật đèn LED hắt chân 5% độ sáng).</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-blue-600 font-bold">✅ Thông minh:</span> <span>Cửa chính mở + Không có điện thoại nào kết nối WiFi ở nhà ➔ <strong>Ngữ cảnh: Có trộm.</strong> (Tự động hụ còi, gửi tin nhắn cầu cứu).</span></li>
+                        </ul>
+                    </div>
+
+                    <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-800">4. Giải phẫu hệ thống: Ngôi nhà như một cơ thể sống</h3>
+                    <p class="mb-4">Để một ngôi nhà tự nhận thức được ngữ cảnh, nó được thiết kế giống hệt cơ thể con người với 4 thành phần cấu tạo:</p>
+                    <ul class="space-y-4 mb-8 list-none pl-0">
+                        <li class="flex items-start bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <span class="text-2xl mr-4">👀</span>
+                            <div>
+                                <strong>Giác quan (Input / Sensors):</strong> Cảm biến nhiệt độ (cảm giác da), cảm biến chuyển động (mắt), cảm biến âm thanh (tai). Chúng thu thập dữ liệu môi trường và gửi đi liên tục.
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <span class="text-2xl mr-4">💪</span>
+                            <div>
+                                <strong>Cơ bắp (Output / Actuators):</strong> Công tắc, rơ-le, bóng đèn, rèm cửa, van nước. Đây là những "kẻ bốc vác", chỉ biết chờ lệnh để thực thi (bật/tắt, đóng/mở).
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <span class="text-2xl mr-4">🗣️</span>
+                            <div>
+                                <strong>Hệ thần kinh (Protocols):</strong> Zigbee, Z-Wave, WiFi, Bluetooth, Thread. Là "ngôn ngữ" và "đường truyền" để giác quan báo cáo về não, và não truyền lệnh xuống cơ bắp.
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <span class="text-2xl mr-4">🧠</span>
+                            <div>
+                                <strong>Bộ não (Controller / Hub / Server):</strong> Nơi chứa trí thông minh (Automation). Não nhận tín hiệu "Mắt thấy có người" + "Trời đang tối", nó phân tích ngữ cảnh, lục tìm quy tắc và ra lệnh "Truyền tín hiệu cho cơ tay bật đèn lên!".
+                            </div>
+                        </li>
+                    </ul>
+
+                    <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-800">5. Bộ não đặt ở đâu? (Cloud vs Local)</h3>
+                    <p class="mb-4">Sự khác biệt kỹ thuật lớn nhất trong thế giới Smart Home hiện nay là vị trí bạn đặt "Bộ não". Hãy tưởng tượng bạn thuê một quản gia:</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                            <div class="flex items-center space-x-2 mb-3">
+                                <span class="bg-red-200 text-red-800 px-2 py-1 rounded text-xs font-bold">Nền tảng Cloud (Tuya, Sonoff)</span>
+                            </div>
+                            <h4 class="font-bold text-gray-900 mb-2">"Quản gia ở nước ngoài"</h4>
+                            <p class="text-sm text-gray-700 mb-4">Bộ não xử lý logic nằm ở máy chủ tại Trung Quốc hoặc Mỹ. Khi cảm biến thấy bạn, nó gửi tín hiệu qua Cáp quang biển ra nước ngoài, não xử lý xong gửi lệnh ngược về Việt Nam cho bóng đèn.</p>
+                            <div class="bg-white p-3 rounded border border-red-100 text-sm font-mono text-center mb-4">
+                                Mắt &rarr; <span class="text-red-500">Internet / Cáp quang biển</span> &rarr; Máy chủ Cloud &rarr; <span class="text-red-500">Cáp quang</span> &rarr; Đèn
+                            </div>
+                            <ul class="text-sm mt-3 text-red-700 list-disc pl-5 space-y-1">
+                                <li><strong>Hậu quả:</strong> Mất mạng là nhà bị "liệt não". Đứt cáp quang thì bấm nút 3 giây sau đèn mới sáng. Công ty Cloud phá sản = vứt cả nhà thiết bị.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                            <div class="flex items-center space-x-2 mb-3">
+                                <span class="bg-green-200 text-green-800 px-2 py-1 rounded text-xs font-bold">Nền tảng Local (Home Assistant)</span>
+                            </div>
+                            <h4 class="font-bold text-gray-900 mb-2">"Quản gia thường trú trong nhà"</h4>
+                            <p class="text-sm text-gray-700 mb-4">Bạn tự mua một cục máy tính nhỏ (ví dụ: Raspberry Pi hoặc Mini PC) cắm tại nhà và cài Home Assistant. Máy tính này làm bộ não. Mọi tín hiệu chỉ chạy quẩn quanh cục Router WiFi nhà bạn.</p>
+                            <div class="bg-white p-3 rounded border border-green-100 text-sm font-mono text-center mb-4">
+                                Mắt &rarr; <span class="text-green-600">Home Assistant (Máy chủ ở góc nhà)</span> &rarr; Đèn
+                            </div>
+                            <ul class="text-sm mt-3 text-green-700 list-disc pl-5 space-y-1">
+                                <li><strong>Kết quả:</strong> Tốc độ phản hồi tính bằng mili-giây. Rút dây mạng Internet ra nhà vẫn tự động 100%. Dữ liệu sinh hoạt không bị gửi ra ngoài.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PHẦN 2 -->
+            <section id="phan2" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 2: Bản chất Home Assistant & Các bản cài đặt</h2>
+                
+                <div class="bg-blue-50 border-l-4 border-ha-blue p-5 mb-6">
+                    <p class="font-semibold text-lg text-gray-900">Sự hiểu lầm phổ biến:</p>
+                    <p class="text-gray-700">Nhiều người nghĩ cài Home Assistant vào máy tính là tự động kết nối được bóng đèn Zigbee. <strong>SAI!</strong></p>
+                </div>
+
+                <div class="prose max-w-none text-gray-700">
+                    <p><strong>Home Assistant (HA) thực chất là một "Server Automation" (Máy chủ Tự động hóa phần mềm).</strong> Nó đóng vai trò là "Bộ Não" hoặc "Nhạc trưởng".</p>
+                    <ul class="list-none space-y-2 mt-4 mb-8">
+                        <li>❌ Nó <strong>không phải</strong> là Zigbee Hub (Nó không có ăng-ten Zigbee).</li>
+                        <li>❌ Nó <strong>không phải</strong> là MQTT Broker (Nó không tự sinh ra để xử lý bản tin MQTT).</li>
+                        <li>❌ Nó <strong>không phát</strong> sóng Matter/Thread.</li>
+                        <li>✅ <strong>NHƯNG:</strong> Bằng cách cắm thêm phần cứng (USB Zigbee, USB Thread) và cài thêm phần mềm (Add-ons / Containers), nó có thể biến thành <strong>TẤT CẢ</strong> những thứ trên và gom chúng về một giao diện duy nhất.</li>
+                    </ul>
+
+                    <h3 class="text-2xl font-semibold mt-6 mb-4 text-gray-800">Từ điển các khái niệm cốt lõi trong HA:</h3>
+                    <div class="grid md:grid-cols-2 gap-4 mb-8">
+                        <div class="bg-white p-4 rounded border shadow-sm">
+                            <h4 class="font-bold text-ha-blue">Integration (Tích hợp)</h4>
+                            <p class="text-sm">Là các "Driver" bên trong Core. Giống như cài driver máy in cho Windows. Có Integration Philips Hue thì HA mới hiểu được ngôn ngữ của đèn Hue. Hiện có hơn 2500+ integrations.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded border shadow-sm">
+                            <h4 class="font-bold text-ha-blue">Add-on (Tiện ích bổ sung)</h4>
+                            <p class="text-sm">Là các phần mềm/server chạy độc lập bên cạnh HA (thường là các Docker container). Ví dụ: MQTT Broker, Node-RED. Chúng chạy trên cùng máy tính với HA để bổ trợ cho HA.</p>
+                        </div>
+                        <div class="bg-white p-4 rounded border shadow-sm">
+                            <h4 class="font-bold text-ha-blue">Device & Entity (Thiết bị & Thực thể)</h4>
+                            <p class="text-sm"><strong>Device:</strong> Là thiết bị vật lý (vd: Cảm biến đa năng Aqara).<br><strong>Entity:</strong> Là các thuộc tính con của Device đó (vd: Entity Nhiệt độ, Entity Độ ẩm, Entity Pin).</p>
+                        </div>
+                        <div class="bg-white p-4 rounded border shadow-sm">
+                            <h4 class="font-bold text-ha-blue">Supervisor & Core</h4>
+                            <p class="text-sm"><strong>Core:</strong> Là trái tim xử lý logic của HA (viết bằng Python).<br><strong>Supervisor:</strong> Là quản gia (chỉ có trên bản HAOS/Supervised), giúp quản lý Core, cập nhật OS, và cài đặt Add-ons.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold mt-10 mb-4 text-gray-800">Các phương pháp cài đặt Home Assistant</h3>
+                    <p class="mb-4">Home Assistant cung cấp 4 phương pháp cài đặt chính, phụ thuộc vào kiến thức IT và phần cứng bạn đang có:</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mb-8">
+                        <div class="bg-white p-5 rounded border border-gray-200 shadow-sm relative">
+                            <span class="absolute top-0 right-0 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-bl rounded-tr">Phổ biến nhất</span>
+                            <h4 class="font-bold text-gray-900 mb-2">1. Home Assistant OS (HAOS)</h4>
+                            <p class="text-sm text-gray-600 mb-2">Cài nguyên một hệ điều hành (dựa trên Linux) đã cấu hình sẵn mọi thứ. Có đầy đủ Core, Supervisor và cửa hàng Add-ons.</p>
+                            <p class="text-xs text-gray-500 font-mono bg-gray-100 p-1 rounded inline-block">Dành cho: Người mới bắt đầu, xài Raspberry Pi / Mini PC chạy độc quyền HA.</p>
+                        </div>
+                        <div class="bg-blue-50 p-5 rounded border border-blue-300 shadow-sm relative">
+                            <span class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-bl rounded-tr">Lựa chọn của bạn</span>
+                            <h4 class="font-bold text-blue-900 mb-2">2. Home Assistant Container</h4>
+                            <p class="text-sm text-gray-700 mb-2">Chỉ cài mỗi trái tim "Core" chạy dưới dạng một Docker Container. Tự quản lý hệ điều hành chủ. <strong>KHÔNG CÓ Supervisor và Add-ons</strong>.</p>
+                            <p class="text-xs text-blue-700 font-mono bg-blue-100 p-1 rounded inline-block">Dành cho: Người rành Docker, muốn cài chung với các app khác trên 1 Server.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded border border-gray-200 shadow-sm">
+                            <h4 class="font-bold text-gray-900 mb-2">3. Home Assistant Supervised</h4>
+                            <p class="text-sm text-gray-600 mb-2">Cài trên nền Linux thông thường (bắt buộc Debian thuần) nhưng vẫn có Supervisor và Add-ons. Rất kén hệ điều hành và dễ báo lỗi "Unsupported".</p>
+                            <p class="text-xs text-gray-500 font-mono bg-gray-100 p-1 rounded inline-block">Dành cho: Người giỏi Linux muốn vừa có Add-ons vừa quản lý OS.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded border border-gray-200 shadow-sm">
+                            <h4 class="font-bold text-gray-900 mb-2">4. Home Assistant Core</h4>
+                            <p class="text-sm text-gray-600 mb-2">Cài thẳng bằng câu lệnh Python vào môi trường ảo (Virtual environment). Hoàn toàn thủ công.</p>
+                            <p class="text-xs text-gray-500 font-mono bg-gray-100 p-1 rounded inline-block">Dành cho: Các nhà phát triển (Developers) viết code cho HA.</p>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold mt-8 mb-4 text-ha-blue">Phân tích sâu: Cài đặt HA Container trên Ubuntu</h3>
+                    <p class="mb-4">Bạn đã chọn cài đặt <strong>Home Assistant Container trên hệ điều hành Ubuntu</strong>. Đây là một lựa chọn cực kỳ thông minh cho những ai có kiến thức về nền tảng Docker. Hãy xem ưu, nhược điểm và bản chất của phương pháp này:</p>
+                    
+                    <div class="flex flex-col md:flex-row gap-6 mb-6">
+                        <div class="flex-1 bg-green-50 p-4 rounded-lg border border-green-200">
+                            <h4 class="font-bold text-green-800 mb-2">Sức mạnh (Ưu điểm)</h4>
+                            <ul class="list-disc pl-5 text-sm text-green-700 space-y-1">
+                                <li><strong>Tận dụng tài nguyên:</strong> Máy chủ Ubuntu của bạn không bị HA "bắt cóc" độc quyền. Bạn có thể cài thêm Web server, NAS, Plex Media... chạy song song trên cùng hệ điều hành.</li>
+                                <li><strong>Cực kỳ nhẹ & Ổn định:</strong> Chạy qua Docker chuẩn của hệ thống, tải rất nhẹ, không bị gò bó bởi các check lỗi khắt khe của Supervisor.</li>
+                                <li><strong>Làm chủ hệ thống:</strong> Bạn toàn quyền quản lý đường truyền mạng, port, ổ đĩa lưu trữ (Volumes) của Docker.</li>
+                            </ul>
+                        </div>
+                        <div class="flex-1 bg-orange-50 p-4 rounded-lg border border-orange-200">
+                            <h4 class="font-bold text-orange-800 mb-2">Sự đánh đổi (Nhược điểm)</h4>
+                            <ul class="list-disc pl-5 text-sm text-orange-700 space-y-1">
+                                <li><strong>Mất tab "Add-ons":</strong> Trong giao diện HA của bạn sẽ KHÔNG CÓ cửa hàng Add-ons.</li>
+                                <li><strong>Tự quản lý Docker:</strong> Thay vì ấn "Install" Add-on trên UI để cài MQTT Broker hay Zigbee2MQTT, bạn phải <em>tự viết file docker-compose</em> để cài chúng dưới dạng các container tách biệt kế bên HA container.</li>
+                                <li><strong>Tự lo phần Backup:</strong> Không có nút bấm backup 1 click toàn máy, bạn phải tự cấu hình sao lưu thư mục <code>/config</code>.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-gray-700 mb-2"><strong>Bản chất kỹ thuật:</strong> Khi cài trên Ubuntu, bạn dùng công cụ quản lý container (như Portainer hoặc dòng lệnh) để chạy một file <code>docker-compose.yml</code> trông như thế này:</p>
+<pre><code class="language-yaml">version: '3'
+services:
+  homeassistant:
+    container_name: homeassistant
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    volumes:
+      - /opt/homeassistant/config:/config # Đưa dữ liệu ra ngoài Ubuntu để không bị mất khi xóa container
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host # RẤT QUAN TRỌNG: Giúp HA nhìn thấy thiết bị trong mạng LAN
+</code></pre>
+                </div>
+            </section>
+
+            <!-- PHẦN 3: So sánh Nền tảng -->
+            <section id="phan3" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 3: So sánh HA với các nền tảng khác</h2>
+                <p class="text-gray-700 mb-4">Trước khi đi sâu vào kỹ thuật, hãy nhìn tổng quan thị trường để hiểu vị thế của Home Assistant so với các hệ sinh thái phổ biến khác.</p>
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tiêu chí</th>
+                                <th>Home Assistant</th>
+                                <th>Tuya / Smart Life</th>
+                                <th>Apple HomeKit</th>
+                                <th>Google Home / Alexa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Nơi xử lý (Core)</strong></td>
+                                <td class="bg-green-100 text-green-800 font-bold">Local (Nhà bạn)</td>
+                                <td class="bg-red-100 text-red-800">Cloud (Máy chủ TQ)</td>
+                                <td class="bg-green-100 text-green-800">Local (Apple TV)</td>
+                                <td class="bg-red-100 text-red-800">Cloud (Máy chủ US)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tốc độ phản hồi</strong></td>
+                                <td class="bg-green-100 text-green-800">Tức thì (&lt; 0.1s)</td>
+                                <td class="bg-yellow-100">Chậm (Phụ thuộc mạng)</td>
+                                <td class="bg-green-100 text-green-800">Tức thì</td>
+                                <td class="bg-yellow-100">Chậm, có độ trễ</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Đứt cáp / mất mạng</strong></td>
+                                <td class="bg-green-100 text-green-800">Vẫn chạy 100% logic</td>
+                                <td class="bg-red-100 text-red-800">Liệt toàn bộ</td>
+                                <td class="bg-green-100 text-green-800">Chạy nội bộ tốt</td>
+                                <td class="bg-red-100 text-red-800">Mất nhận diện giọng nói</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Thiết bị hỗ trợ</strong></td>
+                                <td class="bg-green-100 text-green-800 font-bold">Vô cực (>2500 hãng)</td>
+                                <td class="bg-red-100 text-red-800">Chỉ đồ Tuya</td>
+                                <td class="bg-yellow-100">Chỉ đồ chuẩn HomeKit</td>
+                                <td class="bg-yellow-100">Cần liên kết tài khoản hãng</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Độ phức tạp Automation</strong></td>
+                                <td class="bg-green-100 text-green-800 font-bold">Vô cực (Code, Biến số)</td>
+                                <td class="bg-red-100 text-red-800">Rất cơ bản (IF/THEN)</td>
+                                <td class="bg-yellow-100">Trung bình (Có Shortcuts)</td>
+                                <td class="bg-red-100 text-red-800">Rất cơ bản</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- PHẦN 4: Tại sao chọn HA -->
+            <section id="phan4" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 4: Tại sao lại chọn làm khổ bản thân với HA?</h2>
+                
+                <p class="text-gray-700 mb-4">Nhìn bảng so sánh trên, rõ ràng HA khó tiếp cận nhất. Thay vì tải App 5 phút là xong, tại sao phải học Linux, Docker, code YAML?</p>
+                
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="text-green-500 mt-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>
+                        <div>
+                            <h4 class="font-bold">Chống Vendor Lock-in (Phụ thuộc hãng)</h4>
+                            <p class="text-sm text-gray-600">Bạn lỡ mua 10 công tắc Tuya, 5 rèm Xiaomi, 1 khóa Aqara. Ở ngoài đời cần 3 app khác nhau. HA gom tất cả về 1 app và cho chúng tương tác chéo với nhau.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="text-green-500 mt-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>
+                        <div>
+                            <h4 class="font-bold">Quyền riêng tư Tuyệt đối</h4>
+                            <p class="text-sm text-gray-600">Camera phòng ngủ, giờ giấc bạn đi làm... tất cả nằm trên máy chủ tại nhà bạn. Không một công ty công nghệ nào phân tích dữ liệu sinh hoạt của gia đình bạn được.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="text-green-500 mt-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>
+                        <div>
+                            <h4 class="font-bold">Logic Phức tạp (Ngữ cảnh thực)</h4>
+                            <p class="text-sm text-gray-600">App hãng: "Có người ➔ Bật đèn". HA làm được: "Có người, NẾU TV đang bật, NẾU là thứ 7, NẾU ngoài trời < 20 độ ➔ Bật đèn vàng 30%".</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="text-green-500 mt-1"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>
+                        <div>
+                            <h4 class="font-bold">Dashboard Tùy chỉnh (Giao diện)</h4>
+                            <p class="text-sm text-gray-600">Gắn máy tính bảng lên tường, hiển thị bản đồ nhà 3D, biểu đồ điện năng tiêu thụ, lịch rác... Bạn có thể thiết kế màn hình y như phim khoa học viễn tưởng.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== CHƯƠNG 2 ===================== -->
+
+            <!-- PHẦN 5: Giao thức -->
+            <section id="phan5" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 5: Phân tích sâu Các Giao Thức (Radio & Protocols)</h2>
+                
+                <p class="text-gray-700 mb-6">Để thiết kế một hệ thống ổn định, bạn bắt buộc phải hiểu sự khác biệt giữa "Tần số sóng vật lý" (cách thiết bị truyền điện từ trong không khí) và "Ngôn ngữ giao tiếp" (cách thiết bị hiểu nhau). Dưới đây là cuộc giải phẫu chi tiết nhất về các chuẩn kết nối.</p>
+
+                <!-- Sơ đồ Topo -->
+                <div class="bg-white p-4 rounded-lg shadow border border-gray-200 overflow-x-auto mb-8 text-center">
+                    <pre class="mermaid">
+                        flowchart TD
+                            subgraph Star ["Mạng hình sao - Điển hình: WiFi"]
+                                direction TB
+                                R1(("Router WiFi"))
+                                D1["Bóng đèn"]
+                                D2["Camera"]
+                                D3["Công tắc"]
+                                R1 --- D1
+                                R1 --- D2
+                                R1 --- D3
+                                style R1 fill:#fca5a5,stroke:#b91c1c
+                            end
+
+                            subgraph Mesh ["Mạng lưới - Điển hình: Zigbee / Thread"]
+                                direction TB
+                                H1(("Hub/Coordinator"))
+                                R_A(("Router - Cắm điện"))
+                                R_B(("Router - Cắm điện"))
+                                E_1["Cảm biến - Pin"]
+                                E_2["Cảm biến - Pin"]
+                                
+                                H1 --- R_A
+                                H1 --- R_B
+                                R_A --- R_B
+                                R_A --- E_1
+                                R_B --- E_2
+                                R_A --- E_2
+                                style H1 fill:#6ee7b7,stroke:#047857
+                                style R_A fill:#a7f3d0,stroke:#047857
+                                style R_B fill:#a7f3d0,stroke:#047857
+                            end
+                    </pre>
+                    <p class="text-sm text-gray-500 mt-2 italic">Sự khác biệt cốt lõi: Trong mạng Mesh, các thiết bị cắm điện (Router) có thể trò chuyện và "đá" sóng truyền tiếp cho nhau để mở rộng vùng phủ sóng.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Zigbee -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-red-500 relative">
+                        <div class="absolute top-4 right-4 bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono font-bold">IEEE 802.15.4</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">1. Zigbee (Chiến binh dẻo dai)</h3>
+                        <p class="text-sm font-semibold text-red-600 mb-3">Tần số: Sóng Radio 2.4 GHz | Cấu trúc mạng: Mesh (Mạng lưới)</p>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <p><strong>Bản chất vật lý:</strong> Zigbee dùng chung dải tần số 2.4 GHz với WiFi nhà bạn. Nó truyền dữ liệu rất chậm (chỉ 250 kbps) nhưng băng thông nhỏ này giúp nó tiêu thụ một lượng điện cực kỳ việt dã.</p>
+                            <p><strong>Cơ chế hoạt động (Mesh):</strong> Trong mạng Zigbee có 3 vai trò:
+                                <ul class="list-disc pl-8 mt-1 mb-2 space-y-1">
+                                    <li><em>Coordinator (Nhạc trưởng):</em> Chính là cục USB Zigbee. Khởi tạo và quản lý mạng. (Nếu cục này hỏng, toàn mạng sập).</li>
+                                    <li><em>Router (Trạm phát sóng):</em> Mọi thiết bị Zigbee <strong>được cắm điện 220V</strong> (như công tắc âm tường, ổ cắm thông minh) đều tự động biến thành Router phát lại sóng.</li>
+                                    <li><em>End Device (Lính ngủ đông):</em> Thiết bị chạy pin. Nó luôn "ngủ" để tiết kiệm pin, chỉ khi có sự kiện nó mới thức dậy vứt gói tin cho Router gần nhất rồi ngủ tiếp. Pin chạy được 2 năm!</li>
+                                </ul>
+                            </p>
+                            <p><strong>⚠️ Điểm yếu thực tế (Lỗi "Sticky Node"):</strong> Mặc dù lý thuyết có tính năng tự phục hồi mạng, nhưng thực tế các thiết bị chạy pin (đặc biệt của Aqara/Xiaomi cũ) rất "ngoan cố". Khi cục công tắc (Router) mà nó đang bám vào bị hỏng hoặc cúp điện, cảm biến thà báo mất kết nối chứ không chịu tự tìm đường rẽ qua một công tắc khác. Tình trạng này ép bạn phải đi nhấn nút kết nối (pair) lại. Thêm vào đó, Zigbee rất dễ bị nhiễu sóng với WiFi 2.4 GHz nếu trùng kênh.</p>
+                        </div>
+                    </div>
+
+                    <!-- Z-Wave -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-indigo-500 relative">
+                        <div class="absolute top-4 right-4 bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono font-bold">ITU-T G.9959</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">2. Z-Wave (Kẻ xuyên tường)</h3>
+                        <p class="text-sm font-semibold text-indigo-600 mb-3">Tần số: Sub-1 GHz (~908 MHz ở Mỹ / ~868 MHz ở Châu Âu) | Cấu trúc mạng: Mesh</p>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <p><strong>Bản chất vật lý:</strong> Theo nguyên lý vật lý sóng, bước sóng càng dài (tần số càng thấp) thì khả năng đâm xuyên vật cản càng tốt. Vì Z-Wave chạy ở tần số ~900 MHz (thấp hơn nhiều so với 2.4 GHz của Zigbee/WiFi), sóng của nó <strong>xuyên tường bê tông cực kỳ mượt mà</strong> và hoàn toàn không bị nhiễu bởi WiFi hay Bluetooth.</p>
+                            <p><strong>Nhược điểm:</strong> 
+                                <ul class="list-disc pl-8 mt-1 mb-2 space-y-1">
+                                    <li>Đây là công nghệ độc quyền (Proprietary). Các hãng sản xuất phải trả tiền bản quyền con chip nên giá thành thiết bị rất đắt đỏ.</li>
+                                    <li>Sự phân mảnh khu vực: Bạn mua thiết bị Z-Wave Mỹ về cắm với Hub Z-Wave Châu Âu thì nó mù tịt không nhìn thấy nhau do khác tần số.</li>
+                                </ul>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- WiFi -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500 relative">
+                        <div class="absolute top-4 right-4 bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono font-bold">IEEE 802.11</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">3. WiFi (Gã khổng lồ đói khát)</h3>
+                        <p class="text-sm font-semibold text-blue-600 mb-3">Tần số: Sóng Radio 2.4 GHz / 5 GHz | Cấu trúc mạng: Star (Mạng hình sao)</p>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <p><strong>Bản chất vật lý:</strong> WiFi sinh ra để truyền tải dữ liệu nặng. Sóng WiFi rất "dày" và băng thông cực lớn.</p>
+                            <p><strong>Cơ chế hoạt động (Star):</strong> Tất cả mọi thiết bị đều phải kết nối trực tiếp về một điểm trung tâm duy nhất là cục Router WiFi nhà mạng. <strong>Các bóng đèn WiFi không thể truyền sóng hộ nhau.</strong></p>
+                            <p><strong>Hậu quả trong Smart Home:</strong> 
+                                <ul class="list-disc pl-8 mt-1 mb-2 space-y-1">
+                                    <li><strong>Sát thủ pin:</strong> Do phải duy trì giao thức TCP/IP liên tục, nếu làm cảm biến cửa bằng WiFi, cục pin sẽ cạn sạch trong 2 tuần.</li>
+                                    <li><strong>Gây sập mạng:</strong> Nếu bạn lắp 50 cái công tắc WiFi vào nhà, cục Router nhà mạng sẽ bị quá tải kết nối (Overload) khiến mạng nhà bạn lag, rớt liên tục. Chơi hệ WiFi bắt buộc phải đầu tư Router xịn.</li>
+                                </ul>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Thread -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-purple-500 relative">
+                        <div class="absolute top-4 right-4 bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono font-bold">IPv6 over 802.15.4</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">4. Thread (Kẻ kế vị vĩ đại)</h3>
+                        <p class="text-sm font-semibold text-purple-600 mb-3">Tần số: 2.4 GHz | Cấu trúc mạng: Mesh IPv6</p>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <p><strong>Bản chất vật lý:</strong> Về phần cứng radio, Thread dùng chung chuẩn phần cứng y hệt Zigbee (có thể nạp lại firmware từ Zigbee sang Thread). Tức là sóng vẫn tiêu thụ điện cực thấp và vẫn chạy Mesh.</p>
+                            <p><strong>Sự đột phá:</strong> Sự khác biệt nằm ở phần mềm! Zigbee nói ngôn ngữ ngoài hành tinh, cần phần mềm (Zigbee2MQTT) dịch sang tiếng Trái đất. <strong>Thread thì khác, nó gán thẳng Địa chỉ IP (IPv6) cho cái bóng đèn!</strong> Bóng đèn có thể trò chuyện trực tiếp với máy tính mà KHÔNG CẦN bộ dịch ngôn ngữ. Nó chỉ cần một trạm trung chuyển (gọi là <strong>Border Router</strong>) để lấy mạng từ WiFi truyền vào mạng radio của Thread.</p>
+                            <p><strong>Khả năng Tự phục hồi vô đối (Khắc phục lỗi của Zigbee):</strong> Nhờ dùng cơ chế định tuyến IP thực thụ, mạng Thread tự phục hồi cực kỳ linh hoạt và không có điểm yếu chết người. 
+                                <ul class="list-disc pl-8 mt-1 mb-2 space-y-1">
+                                    <li>Nếu một thiết bị trung gian bị rút điện, các thiết bị Thread khác lập tức vẽ lại bản đồ và tìm đường đi mới trong tích tắc (khắc phục Sticky Node).</li>
+                                    <li>Nếu nhà bạn có 2 cục Border Router (ví dụ 1 Apple TV và 1 Google Nest), khi cục Apple hỏng, cục Google lập tức tự động lên nắm quyền. Mạng không bao giờ sập!</li>
+                                </ul>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Matter -->
+                    <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-teal-500 relative">
+                        <div class="absolute top-4 right-4 bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-mono font-bold">Application Layer</div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">5. Matter (Bản Hiệp ước Hòa bình)</h3>
+                        <p class="text-sm font-semibold text-teal-600 mb-3">KHÔNG PHẢI LÀ TẦN SỐ SÓNG | Cấu trúc: Lớp ứng dụng (Ngôn ngữ phần mềm)</p>
+                        <div class="space-y-2 text-sm text-gray-700">
+                            <div class="bg-teal-50 p-3 rounded mb-2 text-teal-800 italic">
+                                "Sự lầm tưởng lớn: Matter không phải là một chuẩn sóng vô tuyến thay thế WiFi hay Bluetooth!"
+                            </div>
+                            <p><strong>Bản chất:</strong> Matter là một bộ quy tắc từ vựng chuẩn (như tiếng Anh quốc tế). Nó có thể cưỡi trên lưng sóng WiFi, sóng Thread, hoặc cáp mạng LAN.</p>
+                            <p>Trước đây, Bóng đèn Tuya nói tiếng Trung, Hub Apple nói tiếng Anh ➔ Không hiểu nhau. Ngày nay, mọi công ty lớn (Apple, Google, Amazon, Tuya, Samsung) cùng ký thỏa thuận: "Tất cả thiết bị có logo Matter đều phải nói chung một ngôn ngữ". Bạn mua 1 cái khóa cửa Matter over Thread, bạn có thể thêm nó vào Apple HomeKit, thêm vào Google Home, và ném trực tiếp vào Home Assistant hoàn toàn local mà không cần phụ thuộc cloud hãng.</p>
+                        </div>
+                    </div>
+
+                    <!-- MQTT -->
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-sm border-l-4 border-gray-400 text-white relative">
+                        <div class="absolute top-4 right-4 bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs font-mono font-bold">TCP/IP Port 1883</div>
+                        <h3 class="text-2xl font-bold text-gray-100 mb-2">6. MQTT (The Message Broker)</h3>
+                        <p class="text-sm font-semibold text-gray-400 mb-3">Giao thức Mạng máy tính | Hoạt động trên: LAN / WAN / Internet</p>
+                        <div class="space-y-2 text-sm text-gray-300">
+                            <p><strong>Bản chất phần mềm:</strong> Chạy trên chuẩn TCP/IP, MQTT là chuẩn truyền tin sinh ra dành riêng cho IoT. Kiến trúc của nó không phải là Client kết nối thẳng Server (như khi bạn vào Web), mà nó dùng cơ chế <strong>Publish/Subscribe (Xuất bản / Đăng ký theo dõi)</strong> siêu nhẹ.</p>
+                            <div class="bg-gray-700 p-3 rounded font-mono text-xs my-2 text-green-400">
+                                # Cảm biến phát bản tin (Publish)<br>
+                                Cảm_biến_vườn >> Gửi lên bảng tin: Chủ đề (Topic): home/vuon/nhietdo, Nội dung (Payload): "38°C"<br><br>
+                                # Hệ thống lắng nghe (Subscribe)<br>
+                                Home_Assistant >> Đăng ký theo dõi chủ đề "home/vuon/nhietdo". Khi có tin mới, HA nhận ngay lập tức!
+                            </div>
+                            <p><strong>QoS (Quality of Service):</strong> MQTT cam kết gói tin được giao thành công. Nếu mạng chập chờn, HA có thể thiết lập QoS=1 (Giao ít nhất 1 lần) hoặc QoS=2 (Giao đúng 1 lần duy nhất), Broker sẽ ghi nhớ và gửi lại bản tin ngay khi thiết bị có mạng lại.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- PHẦN 6: Kiến trúc Docker -->
+            <section id="phan6" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 6: Kiến trúc Docker Hệ thống (Ubuntu)</h2>
+                
+                <p class="text-sm text-gray-700 mb-4">Dựa trên mô hình cài đặt <strong>HA Container trên Ubuntu</strong>, hệ thống của bạn sẽ không có khái niệm "Add-ons". Thay vào đó, mọi thành phần giao tiếp đều là các <strong>Docker Container</strong> chạy độc lập song song với nhau. Docker Engine đóng gói chúng vào các "thùng hàng" kín mít, cách ly hoàn toàn, đảm bảo chúng không cắn xé hay xung đột thư viện với hệ điều hành Ubuntu của bạn.</p>
+
+                <!-- Sơ đồ Kiến trúc -->
+                <div class="bg-white p-4 rounded-lg shadow border border-gray-200 overflow-x-auto mb-6 text-center">
+                    <pre class="mermaid">
+                        flowchart LR
+                            subgraph L4 ["Lớp Thiết Bị Vật Lý"]
+                                direction TB
+                                Dev_Z["Cảm biến Zigbee"]
+                                Dev_T["Khóa Matter/Thread"]
+                                Dev_W_Matter["Đèn Matter over WiFi"]
+                                
+                                ESP_Sensors["Cảm biến Nhiệt độ/Độ ẩm"]
+                                ESP_Board["Mạch ESP32 (ESPHome)"]
+                                ESP_Sensors -->|"Đấu dây chân GPIO"| ESP_Board
+                                
+                                Dev_RM4C["Cục IR Broadlink"]
+                                Dev_IR["TV / Điều hòa"]
+                                
+                                Dev_RM4C -.->|"Tia Hồng ngoại"| Dev_IR
+                            end
+
+                            subgraph L3 ["Lớp Trung Gian - Cửa ngõ"]
+                                direction TB
+                                USB_Z(("USB Zigbee"))
+                                USB_T(("USB Thread"))
+                                Router(("Router WiFi / Switch"))
+                            end
+
+                            subgraph L1 ["Máy chủ Ubuntu - Lớp Container"]
+                                direction TB
+                                Z2M["Zigbee2MQTT"]
+                                MQTT["Mosquitto MQTT"]
+                                OTBR["Border Router"]
+                                Matter["Matter Server"]
+                                ESPHome_C["ESPHome Dashboard"]
+                                HA(("Home Assistant Core"))
+                            end
+
+                            %% Sóng (Từ thiết bị lên Cửa ngõ)
+                            Dev_Z -.->|"Sóng Zigbee"| USB_Z
+                            Dev_T -.->|"Sóng Thread"| USB_T
+                            Dev_W_Matter -.->|"Sóng WiFi"| Router
+                            ESP_Board -.->|"Sóng WiFi"| Router
+                            Dev_RM4C -.->|"Sóng WiFi"| Router
+
+                            %% Kết nối vật lý và Local IP
+                            USB_Z -->|"Map cổng USB"| Z2M
+                            USB_T -->|"Map cổng USB"| OTBR
+                            
+                            Router <--> ESPHome_C
+                            Router <--> Matter
+                            Router <--> HA
+
+                            %% Giao tiếp Container nội bộ
+                            Z2M <--> MQTT
+                            MQTT <--> HA
+                            OTBR <--> Matter
+                            Matter <--> HA
+                            
+                            %% Đường đặc biệt (Nạp OTA thỉnh thoảng mới chạy)
+                            ESPHome_C -.->|"Nạp Code OTA"| ESP_Board
+
+                            classDef core fill:#e0f2fe,stroke:#0369a1,stroke-width:3px,font-weight:bold
+                            class HA core
+                    </pre>
+                </div>
+
+                <h3 class="text-2xl font-bold mt-8 mb-4 text-gray-800">Giải phẫu chi tiết từng luồng giao tiếp Container:</h3>
+                
+                <div class="space-y-6">
+                    <!-- Luồng 1 -->
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-ha-blue text-lg flex items-center mb-2">
+                            <span class="bg-blue-100 text-blue-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">1</span>
+                            Luồng Zigbee2MQTT (Qua USB Zigbee)
+                        </h4>
+                        <p class="text-sm text-gray-700"><strong>Đường đi:</strong> Thiết bị ➔ (Sóng Zigbee) ➔ USB Zigbee ➔ Container <strong>Zigbee2MQTT</strong> (Dịch sóng điện từ thành file text JSON) ➔ Container <strong>Mosquitto MQTT</strong> (Trạm trung chuyển tin nhắn) ➔ Container <strong>HA Core</strong>.</p>
+                    </div>
+
+                    <!-- Luồng 2 -->
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-ha-blue text-lg flex items-center mb-2">
+                            <span class="bg-purple-100 text-purple-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">2</span>
+                            Luồng Matter over Thread (Qua USB Thread)
+                        </h4>
+                        <p class="text-sm text-gray-700"><strong>Đường đi cực kỳ chặt chẽ:</strong> Thiết bị ➔ (Sóng Radio Thread) ➔ USB Thread ➔ Container <strong>OTBR</strong> (Đóng vai trò cầu nối, biến mạng Thread thành mạng IPv6 LAN để máy tính hiểu được) ➔ Container <strong>Matter Server</strong> (Xác thực bảo mật và dịch ngôn ngữ Matter) ➔ Container <strong>HA Core</strong>.</p>
+                    </div>
+
+                    <!-- Luồng 3 -->
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-ha-blue text-lg flex items-center mb-2">
+                            <span class="bg-teal-100 text-teal-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">3</span>
+                            Luồng Matter over WiFi
+                        </h4>
+                        <p class="text-sm text-gray-700"><strong>Đường đi:</strong> Thiết bị ➔ (Sóng WiFi) ➔ <strong>Router WiFi</strong> nhà bạn (Bỏ qua USB và bỏ qua container OTBR) ➔ Container <strong>Matter Server</strong> (Xác thực thiết bị Matter trên mạng LAN) ➔ Container <strong>HA Core</strong>.</p>
+                    </div>
+
+                    <!-- Luồng 4 -->
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-ha-blue text-lg flex items-center mb-2">
+                            <span class="bg-orange-100 text-orange-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">4</span>
+                            Luồng ESPHome (Cài qua Container)
+                        </h4>
+                        <div class="space-y-3 text-sm text-gray-700">
+                            <p><strong>Giai đoạn 1: Lập trình & Nạp Code:</strong> Container <strong>ESPHome Dashboard</strong> mà bạn cài trên Docker đóng vai trò là phần mềm quản lý. Nó biên dịch code YAML thành Firmware và nạp qua sóng WiFi (OTA) thẳng vào chip ESP32.</p>
+                            <p><strong>Giai đoạn 2: Vận hành (Data Flow):</strong> Sau khi nạp code, con chip ESP32 đã có "não". Lúc này đường đi là: Cảm biến vật lý ➔ Chip ESP32 xử lý ➔ (Sóng WiFi) ➔ Router WiFi ➔ <strong>Gửi trực tiếp vào Container HA Core qua Native API</strong>.</p>
+                            <p class="text-orange-700 italic text-xs font-semibold">Lưu ý: Dữ liệu vận hành KHÔNG chạy qua Container ESPHome Dashboard nữa. Tốc độ gửi qua Native API là tức thời (dưới 10ms).</p>
+                        </div>
+                    </div>
+
+                    <!-- Luồng 5 -->
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                        <h4 class="font-bold text-ha-blue text-lg flex items-center mb-2">
+                            <span class="bg-red-100 text-red-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">5</span>
+                            Luồng Cục điều khiển hồng ngoại RM4C
+                        </h4>
+                        <p class="text-sm text-gray-700"><strong>Đường đi:</strong> HA Core ➔ Gửi API qua mạng LAN ➔ Router WiFi ➔ Cục Broadlink RM4C ➔ Phóng tia hồng ngoại (IR) ➔ TV/Điều hòa nhận lệnh (Luồng này là giao tiếp 1 chiều, HA không biết TV đang thực sự bật hay tắt nếu dùng remote tay tác động).</p>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mt-8 text-sm text-gray-700">
+                    <p><strong>💡 Lưu ý quan trọng khi chạy Docker:</strong> Bạn bắt buộc phải cấu hình biến <code>network_mode: host</code> cho các container HA, Matter Server và OTBR. Nếu không, các container này sẽ nằm trong dải IP ảo của Docker và không thể nhìn ra ngoài mạng LAN để tìm thấy Router WiFi hay các thiết bị Matter/ESPHome của bạn.</p>
+                </div>
+            </section>
+
+            <!-- PHẦN 7: Luồng Dữ Liệu -->
+            <section id="phan7" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 7: Luồng Dữ Liệu 2 Chiều (Deep Dive Data Flow) ⭐</h2>
+                
+                <p class="text-gray-700 mb-6">Để chẩn đoán lỗi (debug) hệ thống như một chuyên gia, bạn phải hiểu rõ gói tin di chuyển qua các tầng của mô hình OSI như thế nào. Dưới đây là giải phẫu kỹ thuật chi tiết nhất cho 2 chiều: <strong>Chiều đi VÀO (Uplink - Báo cáo trạng thái)</strong> và <strong>Chiều đi RA (Downlink - Điều khiển thiết bị)</strong> của tất cả các giao thức.</p>
+
+                <!-- Luồng Zigbee -->
+                <div class="mb-12 border-b border-gray-200 pb-10">
+                    <h3 class="text-2xl font-bold mb-5 text-ha-blue flex items-center">
+                        <span class="bg-ha-blue text-white w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">1</span>
+                        Luồng Zigbee: Cấu trúc IEEE 802.15.4 và MQTT Pub/Sub
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <!-- Chiều 1 -->
+                        <div>
+                            <div class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-bold mb-3">▶ CHIỀU VÀO (UPLINK): BÁO CÁO TRẠNG THÁI</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant Sensor as Cảm biến Cửa
+                                        participant USB as USB Coordinator
+                                        participant Z2M as Zigbee2MQTT
+                                        participant MQTT as Mosquitto Broker
+                                        participant HA as HA Core (MQTT)
+        
+                                        Sensor->>USB: [IEEE 802.15.4] Gửi Data Frame
+                                        USB->>Z2M: [Serial] Khung nhị phân (Baud 115200)
+                                        Note over Z2M: Dịch nhị phân thành JSON
+                                        Z2M->>MQTT: [TCP Port 1883] PUBLISH lên Topic
+                                        MQTT->>HA: [TCP Port 1883] PUSH message
+                                </pre>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 class="font-bold text-blue-900 text-sm mb-2">📝 Diễn giải từng bước (Uplink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li><strong>Cảm biến</strong> phát sóng Radio (chuẩn IEEE 802.15.4) mang dữ liệu cửa mở.</li>
+                                    <li><strong>USB Dongle</strong> thu sóng, truyền dữ liệu nhị phân thô qua cáp USB (cổng Serial UART) vào máy tính.</li>
+                                    <li>Container <strong>Zigbee2MQTT</strong> nhận chuỗi nhị phân, giải mã (dùng thư viện ZCL) và dịch thành định dạng chữ JSON dễ hiểu (vd: <code>{"contact":false}</code>).</li>
+                                    <li><strong>Zigbee2MQTT</strong> gửi (Publish) gói JSON này lên trạm trung chuyển <strong>Mosquitto MQTT Broker</strong>.</li>
+                                    <li><strong>MQTT Broker</strong> lập tức đẩy (Push) dữ liệu JSON đó vào thẳng <strong>HA Core</strong> để xử lý hiển thị.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Chiều 2 -->
+                        <div>
+                            <div class="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded text-sm font-bold mb-3">◀ CHIỀU RA (DOWNLINK): ĐIỀU KHIỂN THIẾT BỊ</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant HA as HA Core (MQTT)
+                                        participant MQTT as Mosquitto Broker
+                                        participant Z2M as Zigbee2MQTT
+                                        participant USB as USB Coordinator
+                                        participant Light as Đèn Zigbee
+        
+                                        HA->>MQTT: [TCP Port 1883] PUBLISH lệnh JSON
+                                        MQTT->>Z2M: [TCP Port 1883] PUSH tới Z2M
+                                        Note over Z2M: Dịch JSON thành nhị phân ZCL
+                                        Z2M->>USB: [Serial] Đẩy lệnh xuống vi điều khiển
+                                        USB->>Light: [IEEE 802.15.4] Phóng sóng tới Đèn
+                                        Light-->>USB: [IEEE 802.15.4] Trả về gói ACK
+                                </pre>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                <h4 class="font-bold text-orange-900 text-sm mb-2">📝 Diễn giải từng bước (Downlink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li><strong>Home Assistant Core</strong> phát lệnh Bật/Tắt dưới dạng JSON đẩy lên <strong>MQTT Broker</strong>.</li>
+                                    <li><strong>MQTT Broker</strong> chuyển tiếp lệnh JSON này đến cho <strong>Zigbee2MQTT</strong>.</li>
+                                    <li><strong>Zigbee2MQTT</strong> làm nhiệm vụ dịch ngược JSON thành mã lệnh nhị phân thô.</li>
+                                    <li>Mã lệnh nhị phân được bơm qua cáp Serial xuống phần cứng <strong>USB Dongle</strong>.</li>
+                                    <li><strong>USB Dongle</strong> biến đổi lệnh điện thành sóng vô tuyến và phát thẳng tới <strong>bóng đèn</strong>. Bóng đèn sáng và gửi lại sóng phản hồi (ACK).</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Box Phân tích Zigbee -->
+                    <div class="bg-gray-100 p-5 rounded-lg border-l-4 border-gray-500 text-sm text-gray-800 shadow-inner">
+                        <h4 class="font-bold text-gray-900 mb-2 text-base">🔎 Phân tích kỹ thuật chuyên sâu: Giao thức MQTT & Cổng Serial</h4>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><strong>Lớp Vật lý (Physical Layer):</strong> Tín hiệu truyền đi trên không trung là các gói tin tiêu chuẩn <code>IEEE 802.15.4</code> (hoạt động ở băng tần 2.4GHz). Cục USB Coordinator đóng vai trò bắt các gói tin này và chuyển chúng thành tín hiệu điện.</li>
+                            <li><strong>Giao tiếp UART (Serial):</strong> USB giao tiếp với phần mềm Zigbee2MQTT (Z2M) thông qua một cổng Serial ảo (ví dụ: <code>/dev/ttyUSB0</code>) với tốc độ Baudrate thường là 115200. Ngôn ngữ giao tiếp ở đây là các giao thức nhị phân của nhà sản xuất chip (như <code>Z-Stack</code> của Texas Instruments).</li>
+                            <li><strong>Zigbee Cluster Library (ZCL):</strong> Z2M là "thông dịch viên". Nó đọc mã nhị phân ZCL thô, nhận diện cụm lệnh, sau đó đóng gói lại (Serialize) thành định dạng văn bản <code>JSON</code> dễ đọc.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Luồng ESPHome -->
+                <div class="mb-12 border-b border-gray-200 pb-10">
+                    <h3 class="text-2xl font-bold mb-5 text-ha-blue flex items-center">
+                        <span class="bg-ha-blue text-white w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">2</span>
+                        Luồng ESPHome: Native API & Protocol Buffers
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <!-- Chiều 1 -->
+                        <div>
+                            <div class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-bold mb-3">▶ CHIỀU VÀO (UPLINK): BÁO CÁO TRẠNG THÁI</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant DHT as Cảm biến DHT11
+                                        participant ESP as Chip ESP32
+                                        participant Router as Router WiFi
+                                        participant HA as HA Core
+        
+                                        DHT->>ESP: Tín hiệu điện áp GPIO
+                                        Note over ESP: Đóng gói Protocol Buffers
+                                        ESP->>Router: Truyền gói tin TCP/IP
+                                        Router->>HA: Đẩy thẳng vào Port 6053
+                                </pre>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 class="font-bold text-blue-900 text-sm mb-2">📝 Diễn giải từng bước (Uplink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li>Cảm biến vật lý gửi tín hiệu điện áp vào các chân GPIO của vi điều khiển <strong>ESP32</strong>.</li>
+                                    <li><strong>ESP32</strong> số hóa tín hiệu và đóng gói nó bằng công nghệ nén <strong>Protocol Buffers (Protobuf)</strong> của Google.</li>
+                                    <li><strong>ESP32</strong> truyền gói tin Protobuf siêu nhỏ qua sóng <strong>WiFi</strong> đến <strong>Router</strong>.</li>
+                                    <li><strong>Router</strong> định tuyến gói tin chạy thẳng vào socket liên tục (Port 6053) của <strong>HA Core</strong>. Bỏ qua hoàn toàn trạm trung chuyển trung gian. Core dịch Protobuf và hiển thị tức thì.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Chiều 2 -->
+                        <div>
+                            <div class="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded text-sm font-bold mb-3">◀ CHIỀU RA (DOWNLINK): ĐIỀU KHIỂN THIẾT BỊ</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant HA as HA Core
+                                        participant Router as Router WiFi
+                                        participant ESP as Chip ESP32
+                                        participant Relay as Rơ-le Bơm
+        
+                                        HA->>Router: Gửi lệnh Protobuf (Port 6053)
+                                        Router->>ESP: Truyền WiFi tới IP của ESP32
+                                        Note over ESP: Giải mã Protobuf tức thì
+                                        ESP->>Relay: Cấp điện áp mức HIGH bật Rơ-le
+                                </pre>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                <h4 class="font-bold text-orange-900 text-sm mb-2">📝 Diễn giải từng bước (Downlink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li><strong>Home Assistant</strong> nén lệnh điều khiển thành một mảng nhị phân Protobuf cực nhỏ và đẩy vào mạng nội bộ.</li>
+                                    <li><strong>Router WiFi</strong> phân phối cục nhị phân đó đến đúng địa chỉ IP của chip <strong>ESP32</strong> qua sóng vô tuyến.</li>
+                                    <li><strong>ESP32</strong> nhận được, giải mã nội dung tức thì (do không phải parse chuỗi JSON dài dòng, không tốn RAM).</li>
+                                    <li><strong>ESP32</strong> xuất điện áp 3.3V ra chân GPIO tương ứng để đóng <strong>Rơ-le vật lý</strong> (phát ra tiếng kêu "tạch" gần như cùng lúc bạn bấm app).</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Box Phân tích ESPHome -->
+                    <div class="bg-orange-50 p-5 rounded-lg border-l-4 border-orange-500 text-sm text-gray-800 shadow-inner">
+                        <h4 class="font-bold text-orange-900 mb-2 text-base">🔎 Phân tích kỹ thuật chuyên sâu: Sức mạnh của Native API</h4>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><strong>Khái niệm Socket Connection:</strong> Ngay khi khởi động, mạch ESP32 thiết lập một kết nối <code>TCP Socket</code> 2 chiều liên tục với Home Assistant. Nhờ không phải thiết lập lại bắt tay (TCP Handshake) mỗi lần gửi lệnh, tốc độ phản hồi gần như là thời gian thực (Real-time).</li>
+                            <li><strong>Tại sao không dùng JSON?</strong> Chuỗi JSON chứa rất nhiều ký tự thừa (như ngoặc <code>{}</code>, dấu <code>,</code>). Việc chuyển đổi chuỗi JSON làm tốn CPU của vi điều khiển. ESPHome sử dụng <strong>Protocol Buffers (Protobuf)</strong> do Google phát triển. Dữ liệu bị nén thành một mảng nhị phân (byte array) siêu gọn nhẹ, dung lượng chỉ bằng 1/10 JSON, giúp hệ thống không bao giờ bị tràn RAM.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Luồng Thread -->
+                <div class="mb-12 border-b border-gray-200 pb-10">
+                    <h3 class="text-2xl font-bold mb-5 text-ha-blue flex items-center">
+                        <span class="bg-ha-blue text-white w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">3</span>
+                        Luồng Matter over Thread: Định tuyến IPv6 nguyên bản
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <!-- Chiều 1 -->
+                        <div>
+                            <div class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-bold mb-3">▶ CHIỀU VÀO (UPLINK): BÁO CÁO TRẠNG THÁI</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant Dev as Khóa Thread
+                                        participant USB as USB Thread (RCP)
+                                        participant OTBR as Border Router
+                                        participant Matter as Matter Server
+                                        participant HA as HA Core
+        
+                                        Dev->>USB: Radio mang gói 6LoWPAN
+                                        USB->>OTBR: Truyền Serial thô
+                                        Note over OTBR: Tháo vỏ 6LoWPAN,<br/>định tuyến gói UDP/IPv6
+                                        OTBR->>Matter: Truyền qua cáp LAN
+                                        Note over Matter: Giải mã (AES-CCM)
+                                        Matter->>HA: Đẩy trạng thái (WebSocket)
+                                </pre>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 class="font-bold text-blue-900 text-sm mb-2">📝 Diễn giải từng bước (Uplink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li><strong>Khóa cửa Thread</strong> phát sóng vô tuyến nén bằng chuẩn 6LoWPAN (bên trong chứa địa chỉ IPv6 thật) vào không trung.</li>
+                                    <li><strong>USB Thread</strong> bắt sóng và đưa dữ liệu thô qua cổng Serial vào máy chủ Ubuntu.</li>
+                                    <li>Phần mềm <strong>OTBR</strong> đóng vai trò Trạm thu phí. Nó bóc bỏ lớp vỏ sóng radio 6LoWPAN, nhặt gói IPv6 đó thả vào hạ tầng mạng LAN máy tính. OTBR không hề giải mã nội dung lệnh.</li>
+                                    <li><strong>Matter Server</strong> tiếp nhận gói IPv6 từ LAN. Do nó cầm chìa khóa chứng chỉ riêng (NOC), nó bẻ khóa mã hóa AES-CCM để đọc trạng thái "Cửa mở".</li>
+                                    <li><strong>Matter Server</strong> gọi cho <strong>HA Core</strong> qua WebSocket để báo cáo.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Chiều 2 -->
+                        <div>
+                            <div class="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded text-sm font-bold mb-3">◀ CHIỀU RA (DOWNLINK): ĐIỀU KHIỂN THIẾT BỊ</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant HA as HA Core
+                                        participant Matter as Matter Server
+                                        participant OTBR as Border Router
+                                        participant USB as USB Thread (RCP)
+                                        participant Dev as Khóa Thread
+        
+                                        HA->>Matter: Lệnh Mở cửa (WebSocket)
+                                        Note over Matter: Mã hóa End-to-End
+                                        Matter->>OTBR: Đẩy gói UDP/IPv6 (LAN)
+                                        Note over OTBR: Ép gói IPv6 thành vỏ 6LoWPAN
+                                        OTBR->>USB: Xuất Serial xuống phần cứng
+                                        USB->>Dev: Phóng sóng IPv6 tới Khóa
+                                </pre>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                <h4 class="font-bold text-orange-900 text-sm mb-2">📝 Diễn giải từng bước (Downlink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li><strong>HA Core</strong> truyền lệnh "Mở khóa" tới <strong>Matter Server</strong>.</li>
+                                    <li><strong>Matter Server</strong> dùng chìa khóa phiên bản mật (Session Key) để đóng băng, mã hóa lệnh mở cửa, không cho ai trong mạng LAN có thể đọc được.</li>
+                                    <li>Gói tin đi trên LAN tới trạm <strong>OTBR</strong>. Trạm nhồi ép gói tin IPv6 cho mỏng lại (chuẩn 6LoWPAN) để chui vừa bước sóng radio chậm.</li>
+                                    <li>Gói tin được đẩy xuống phần cứng <strong>USB Thread</strong>.</li>
+                                    <li><strong>USB Thread</strong> phát sóng chứa gói tin mã hóa bay đập thẳng vào đích đến là <strong>Khóa cửa</strong>. Khóa dùng chìa Private Key để tự giải mã và mở chốt.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Box Phân tích Thread -->
+                    <div class="bg-purple-50 p-5 rounded-lg border-l-4 border-purple-500 text-sm text-gray-800 shadow-inner">
+                        <h4 class="font-bold text-purple-900 mb-2 text-base">🔎 Phân tích kỹ thuật chuyên sâu: 6LoWPAN & Bảo mật End-to-End</h4>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><strong>Khái niệm 6LoWPAN:</strong> Đây là công nghệ nén Header IPv6. Sóng chuẩn <code>IEEE 802.15.4</code> có kích thước gói tin rất nhỏ (MTU 127 bytes). 6LoWPAN giúp nén Header cồng kềnh của IPv6 lại để chừa chỗ chứa Payload lệnh thực tế.</li>
+                            <li><strong>Bảo mật mức Quân đội (AES-CCM):</strong> Vì Thread dùng IP, bất kỳ thiết bị nào trong mạng LAN cũng có thể "thấy" gói tin này. Tuy nhiên, Application Layer của Matter đã mã hóa nội dung bằng thuật toán <code>AES-CCM (128-bit)</code> dựa trên chứng chỉ bảo mật (NOC). OTBR hay Router WiFi nhìn thấy gói tin nhưng cũng không thể đọc được nội dung lệnh, chỉ có cái ổ khóa giữ chìa khóa Private Key mới giải mã được. Đó gọi là <strong>End-to-End Encryption</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Luồng Matter WiFi -->
+                <div class="mb-12 border-b border-gray-200 pb-10">
+                    <h3 class="text-2xl font-bold mb-5 text-ha-blue flex items-center">
+                        <span class="bg-ha-blue text-white w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">4</span>
+                        Luồng Matter over WiFi: Giao thức khám phá mDNS
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <!-- Chiều 1 -->
+                        <div>
+                            <div class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-bold mb-3">▶ CHIỀU VÀO (UPLINK): BÁO CÁO TRẠNG THÁI</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant Dev as Đèn Matter WiFi
+                                        participant Router as Router WiFi
+                                        participant Matter as Matter Server
+                                        participant HA as HA Core
+        
+                                        Note over Dev, Matter: Dùng mDNS (UDP Port 5353) tìm địa chỉ Server
+                                        Dev->>Router: [WiFi] Gói IPv6 (Mã hóa TLS/DTLS)
+                                        Router->>Matter: [LAN] Định tuyến tới Matter Server
+                                        Note over Matter: Giải mã (AES-CCM)
+                                        Matter->>HA: [WebSocket] Bắn Event báo cáo
+                                </pre>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 class="font-bold text-blue-900 text-sm mb-2">📝 Diễn giải từng bước (Uplink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li>Bóng <strong>đèn Matter</strong> dùng giao thức mDNS hét lên trong mạng LAN để dò tìm máy chủ Matter đang nằm ở IP nào.</li>
+                                    <li>Khi xác định được, Đèn bắn thẳng một gói tin IPv6 cực kỳ bảo mật (TLS/DTLS) qua sóng <strong>Router WiFi</strong>.</li>
+                                    <li><strong>Router</strong> điều phối chuyển gói tin đến đúng Container chạy <strong>Matter Server</strong>.</li>
+                                    <li><strong>Matter Server</strong> dùng chìa khóa bẻ khóa AES, đọc dữ liệu và gửi thông báo thay đổi màu sắc lên <strong>Home Assistant</strong> thông qua WebSocket API.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Chiều 2 -->
+                        <div>
+                            <div class="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded text-sm font-bold mb-3">◀ CHIỀU RA (DOWNLINK): ĐIỀU KHIỂN THIẾT BỊ</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant HA as HA Core
+                                        participant Matter as Matter Server
+                                        participant Router as Router WiFi
+                                        participant Dev as Đèn Matter WiFi
+        
+                                        HA->>Matter: [WebSocket] Lệnh đổi màu
+                                        Note over Matter: Đóng gói chuẩn TLV và Mã hóa
+                                        Matter->>Router: [LAN] Bắn gói UDP/IPv6 tới IP Đèn
+                                        Router->>Dev: [WiFi] Phân phối tín hiệu
+                                        Note over Dev: Giải mã, thực thi đổi màu
+                                </pre>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                <h4 class="font-bold text-orange-900 text-sm mb-2">📝 Diễn giải từng bước (Downlink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li><strong>Home Assistant</strong> giao lệnh thay đổi ánh sáng sang xanh cho <strong>Matter Server</strong>.</li>
+                                    <li><strong>Matter Server</strong> dịch lệnh này sang ngôn ngữ TLV (cấu trúc rút gọn của chuẩn Matter) và niêm phong bảo mật.</li>
+                                    <li>Khối dữ liệu IPv6 đó truyền qua <strong>Router WiFi</strong> và phát tán ra ngoài không gian.</li>
+                                    <li>Đúng bóng <strong>Đèn Matter</strong> nhận được (nhờ đối khớp IP), nó mở phong bì, đọc lệnh và biến đổi cụm đèn LED bên trong thành màu xanh.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Box Phân tích Matter WiFi -->
+                    <div class="bg-teal-50 p-5 rounded-lg border-l-4 border-teal-500 text-sm text-gray-800 shadow-inner">
+                        <h4 class="font-bold text-teal-900 mb-2 text-base">🔎 Phân tích kỹ thuật chuyên sâu: mDNS và định dạng TLV</h4>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><strong>Khám phá mạng (mDNS Discovery):</strong> Nếu bạn thay Router mạng, dải IP nhà bạn có thể bị đổi (từ <code>192.168.1.x</code> sang <code>10.0.0.x</code>). Làm sao thiết bị Matter tìm lại máy chủ? Nó sử dụng <code>mDNS (Multicast DNS)</code> trên Port <code>5353 UDP</code>. Thiết bị sẽ hét lên: <em>"Server có tên miền _matter._tcp.local ở đâu?"</em>, đảm bảo hệ thống tự kết nối lại dù DHCP có nhảy số.</li>
+                            <li><strong>Định dạng dữ liệu TLV:</strong> Tương tự Protobuf, Matter sử dụng cấu trúc mã hóa nhị phân <strong>TLV (Tag-Length-Value)</strong>. Nó giúp vi điều khiển cấp thấp có thể xử lý các câu lệnh (đổi màu, thay đổi độ sáng, cập nhật phần mềm OTA) mà tốn rất ít bộ nhớ đệm (RAM).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Luồng Hồng Ngoại -->
+                <div class="mb-12">
+                    <h3 class="text-2xl font-bold mb-5 text-ha-blue flex items-center">
+                        <span class="bg-ha-blue text-white w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">5</span>
+                        Luồng Điều khiển Hồng ngoại: Khuyết điểm của giao thức Stateless
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <!-- Chiều 1 (Mù) -->
+                        <div>
+                            <div class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded text-sm font-bold mb-3">❌ CHIỀU VÀO (UPLINK): KHÔNG TỒN TẠI</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        participant TV as TV / Điều hòa (Bộ thu)
+                                        participant RM4C as Broadlink (Bộ phát)
+                                        participant Router as Router WiFi
+                                        participant HA as HA Core
+        
+                                        TV--xRM4C: Tín hiệu bị CHẶN vật lý!
+                                        Note over HA: HA bị MẤT ĐỒNG BỘ.<br/>Không thể biết TV thực sự Bật hay Tắt.
+                                </pre>
+                            </div>
+                            <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                                <h4 class="font-bold text-red-900 text-sm mb-2">📝 Lỗi thiết kế vật lý (Stateless):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1 text-red-800">
+                                    <li>Giao tiếp hồng ngoại là ánh sáng nhấp nháy 1 chiều. Mắt thần trên TV <strong>chỉ nhận</strong> ánh sáng, không có bóng LED để phát ngược lại.</li>
+                                    <li>Do đó, nếu bạn dùng remote cơ học cầm tay bấm tắt TV, <strong>Home Assistant hoàn toàn mù thông tin</strong>.</li>
+                                    <li>Trên giao diện điện thoại, HA đành phải hiển thị "Trạng thái Lạc quan" (cứ giả vờ TV đang Bật nếu lệnh cuối nó phát ra là Bật).</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Chiều 2 -->
+                        <div>
+                            <div class="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded text-sm font-bold mb-3">◀ CHIỀU RA (DOWNLINK): MÃ HÓA BASE64</div>
+                            <div class="bg-white p-3 rounded-lg shadow border border-gray-200 overflow-x-auto text-center mb-4">
+                                <pre class="mermaid">
+                                    sequenceDiagram
+                                        autonumber
+                                        participant HA as HA Core
+                                        participant Router as Router WiFi
+                                        participant RM4C as Cục Broadlink
+                                        participant TV as TV / Điều hòa
+        
+                                        Note over HA: Trích xuất lệnh Base64
+                                        HA->>Router: Gửi API TCP/IP
+                                        Router->>RM4C: Sóng WiFi tới Broadlink
+                                        Note over RM4C: Dịch Base64 thành nháy LED
+                                        RM4C->>TV: Phóng tia Hồng ngoại 940nm
+                                </pre>
+                            </div>
+                            <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                <h4 class="font-bold text-orange-900 text-sm mb-2">📝 Diễn giải từng bước (Downlink):</h4>
+                                <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
+                                    <li><strong>HA Core</strong> tra cứu trong Database và lôi ra chuỗi chữ Base64 đại diện cho mã bấm nút Power (VD: <code>JgBQAAAB...</code>). Gửi chuỗi này qua mạng LAN.</li>
+                                    <li>Chuỗi truyền qua <strong>Router WiFi</strong> bay đến cục cứng <strong>Broadlink RM4C</strong>.</li>
+                                    <li><strong>Broadlink</strong> đọc chữ Base64, dịch ngược ra quy luật chớp tắt mili-giây.</li>
+                                    <li>Cụm đèn LED của <strong>Broadlink</strong> nháy chớp điên cuồng ở bước sóng 940nm bắn vào mắt thu của <strong>TV</strong> để TV mở nguồn. (Nguyên lý Bắn và Quên).</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Box Phân tích Hồng ngoại -->
+                    <div class="bg-red-50 p-5 rounded-lg border-l-4 border-red-500 text-sm text-gray-800 shadow-inner">
+                        <h4 class="font-bold text-red-900 mb-2 text-base">🔎 Phân tích kỹ thuật chuyên sâu: Mã hóa Base64 và Xung Timing</h4>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><strong>Bản chất vật lý của Hồng ngoại:</strong> Sóng vô tuyến có thể giao tiếp 2 chiều. Ngược lại, tia hồng ngoại (IR - Infrared) chỉ là <em>ánh sáng nhấp nháy ở bước sóng 940nm</em>. Cấu trúc này thiết lập nguyên lý <strong>Bắn và Quên (Fire-and-Forget / Stateless)</strong>.</li>
+                            <li><strong>Mã hóa Base64:</strong> Một phím bấm trên remote TV thực chất là danh sách hàng trăm con số chỉ định thời gian đèn LED sáng (Pulse) và tắt (Space) tính bằng micro-giây. Để tiết kiệm ổ cứng Database, HA gom hàng trăm con số đó lại và mã hóa bằng thuật toán <strong>Base64</strong> thành một chuỗi văn bản (Ví dụ: <code>JgBQAAAB...</code>). Khi RM4C nhận được chuỗi, nó dịch ngược ra để chớp tắt đèn LED đúng thời lượng.</li>
+                            <li><strong>Cách khắc phục lỗi "Mù trạng thái":</strong> Dân chuyên nghiệp sẽ cắm phích điện TV vào một <em>Ổ cắm đo dòng điện (Power Monitoring)</em>. Họ viết Automation: <strong>NẾU công suất tiêu thụ > 15W, THÌ cập nhật trạng thái TV thành BẬT.</strong></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PHẦN 8: EVENT BUS -->
+            <section id="phan8" class="content-section">
+                <h2 class="text-3xl font-bold text-blue-700 border-b-2 border-blue-600 pb-2 mb-6">PHẦN 8: Giải phẫu Lõi (Event Bus & State Machine) ⭐</h2>
+                
+                <p class="text-gray-700 mb-4">Bạn có bao giờ thắc mắc: <em>Làm sao một cái máy tính bé xíu (như Raspberry Pi) lại có thể quản lý 2000 cái cảm biến, liên tục ngày đêm mà không bị treo hay quá tải?</em></p>
+                <p class="text-gray-700 mb-6">Bí quyết nằm ở nguyên lý <strong>"Event-Driven" (Hướng sự kiện)</strong>. Thay vì đi hỏi thăm từng cảm biến: <em>"Cửa mở chưa? Đèn sáng chưa?"</em> (cách này gọi là Polling, làm CPU chạy 100% rồi chết), Home Assistant chỉ việc... <strong>Ngồi chơi xơi nước và chờ đợi</strong>. Nó sử dụng 2 vũ khí tối thượng: <strong>Event Bus</strong> và <strong>State Machine</strong>.</p>
+
+                <div class="bg-gray-900 p-5 rounded-lg shadow-xl overflow-x-auto mb-8 text-center border border-gray-700">
+                    <pre class="mermaid">
+                        flowchart TD
+                            subgraph Integrations ["Lớp Tích hợp (Integrations)"]
+                                direction TB
+                                Z2M["Zigbee2MQTT<br/>(Cảm biến, Công tắc)"]
+                                ESP["ESPHome<br/>(Nhiệt độ, Rơ-le)"]
+                                Timer["Core Timer<br/>(Đồng hồ hệ thống)"]
+                            end
+
+                            EB(("EVENT BUS<br/>(Trục Thần Kinh / Group Chat)"))
+
+                            subgraph Memory ["Lớp Lưu Trữ (Memory)"]
+                                direction TB
+                                SM[("STATE MACHINE<br/>(Bảng Trạng Thái)")]
+                                DB[("RECORDER<br/>(Database Lịch Sử)")]
+                            end
+
+                            subgraph Workers ["Lớp Xử Lý (Logic và UI)"]
+                                direction TB
+                                Auto["Automation Engine<br/>(Bộ não Tự động)"]
+                                UI["Lovelace UI<br/>(Giao diện Web/App)"]
+                            end
+
+                            %% Chiều đi VÀO (Báo cáo sự kiện)
+                            Z2M -->|"1. Bắn Event [state_changed]"| EB
+                            Timer -->|"1. Bắn Event [time_changed]"| EB
+
+                            %% Chiều LƯU TRỮ
+                            EB -->|"2. Cập nhật Entity"| SM
+                            EB -->|"2. Ghi log lịch sử"| DB
+
+                            %% Chiều XỬ LÝ
+                            EB -->|"3. Kích hoạt Trigger"| Auto
+                            EB -->|"3. Render lại màu nút"| UI
+                            SM -.->|"Tham chiếu Check Condition"| Auto
+
+                            %% Chiều đi RA (Ra lệnh)
+                            Auto -->|"4. Bắn Lệnh call_service"| EB
+                            EB -->|"5. Giao việc Thực thi lệnh"| ESP
+
+                            classDef bus fill:#ef4444,stroke:#991b1b,stroke-width:4px,color:#fff
+                            classDef mem fill:#3b82f6,stroke:#1e3a8a,color:#fff
+                            classDef action fill:#10b981,stroke:#047857,color:#fff
+                            class EB bus
+                            class SM mem
+                            class Auto action
+                    </pre>
+                </div>
+                
+                <!-- Giải thích bằng phép ẩn dụ -->
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-4">📢</span>
+                            <h3 class="text-2xl font-bold text-gray-800">1. Event Bus (Group Chat Trung Tâm)</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-3">Hãy tưởng tượng <strong>Event Bus</strong> là một cái <strong>Group Zalo của công ty</strong> mang tên "Home Assistant Core". Mọi thành phần trong nhà bạn đều ở trong group này.</p>
+                        <ul class="list-disc pl-10 text-sm text-gray-700 space-y-2">
+                            <li><strong>Hoạt động:</strong> Bất cứ khi nào có chuyện xảy ra (cửa mở, nhiệt độ tăng, đồng hồ điểm 12h đêm), kẻ phát hiện ra sẽ ngay lập tức "nhắn tin" một cái <strong>Event (Sự kiện)</strong> lên group chat này.</li>
+                            <li><strong>Tính chất:</strong> Nó chỉ là con đường truyền tin (đường cao tốc), nó không lưu trữ tin nhắn, tin nhắn trôi qua là mất. Tốc độ truyền tin trên Bus này nhanh đến mức có thể xử lý hàng chục ngàn tin nhắn mỗi giây.</li>
+                            <li><em>Ví dụ kỹ thuật: Integration Zigbee vừa nhắn lên group: <code>Event: state_changed (Entity: binary_sensor.cua, Mới: 'on')</code></em></li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <div class="flex items-center mb-3">
+                            <span class="text-3xl mr-4">📋</span>
+                            <h3 class="text-2xl font-bold text-gray-800">2. State Machine (Bảng Ghi Chú Trạng Thái)</h3>
+                        </div>
+                        <p class="text-sm text-gray-700 mb-3">Vì tin nhắn trên Group Chat (Event Bus) trôi đi rất nhanh, nếu bây giờ bạn muốn biết "Hiện tại cửa đang đóng hay mở?", bạn không thể lội lại hàng ngàn tin nhắn cũ để tìm. Đó là lúc <strong>State Machine</strong> xuất hiện. Nó giống như một <strong>Cái Bảng Trắng</strong> treo giữa phòng.</p>
+                        <ul class="list-disc pl-10 text-sm text-gray-700 space-y-2">
+                            <li><strong>Hoạt động:</strong> State Machine là một thư ký đứng túc trực ở Event Bus. Cứ mỗi khi có tin nhắn "Cửa mở", nó chạy ra cái Bảng Trắng, lấy giẻ bôi chữ "Đóng" đi và ghi chữ "Mở" vào.</li>
+                            <li><strong>Tính chất:</strong> Nó chỉ lưu <strong>trạng thái duy nhất ở ngay tại giây phút hiện tại</strong> (State). Nhờ có nó, HA không bao giờ phải đi hỏi lại cảm biến là "Mày đang đóng hay mở", HA chỉ việc ngước nhìn lên cái Bảng Trắng này là biết ngay lập tức!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Phân tích Chuỗi hành động -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 mt-8 rounded shadow-sm">
+                    <h4 class="font-bold text-blue-900 text-lg mb-4">🎬 Kịch bản thực tế: Bức tranh luân chuyển trong "Lõi"</h4>
+                    <p class="text-sm text-gray-700 mb-4">Dựa vào sơ đồ trên, hãy xem vòng lặp chạy qua Trục Thần Kinh như thế nào khi bạn bước vào nhà:</p>
+                    
+                    <ol class="list-decimal pl-5 text-sm text-gray-800 space-y-3 font-medium">
+                        <li><strong>(Integration báo cáo)</strong> Cảm biến Zigbee thấy bạn, nó gửi sóng về USB. Integration Z2M lập tức nhắn lên <strong>Event Bus</strong>: <span class="text-red-600 bg-red-100 px-1 rounded">"Bắn Event state_changed: Có người!"</span>.</li>
+                        <li><strong>(State Machine ghi chép)</strong> Thư ký chộp lấy tin này, chạy ra cập nhật Bảng Trắng: <span class="text-blue-600 bg-blue-100 px-1 rounded">Cập nhật Entity: Phòng_khách = Có_người</span>. Giao diện (UI) ngó Bảng Trắng và đổi màu icon trên điện thoại.</li>
+                        <li><strong>(Automation ngầm)</strong> Các kịch bản Automation đang "nằm vùng" đọc Group Chat. Một kịch bản thấy tin báo "Có người" (Khớp Trigger). Nó chạy ra <em>tham chiếu</em> thêm Bảng Trắng xem "Trời đang tối không?" (Khớp Condition). Thấy trời đang tối, nó quyết định ra tay!</li>
+                        <li><strong>(Automation ra lệnh)</strong> Kịch bản Automation ném một tin nhắn lệnh ngược lại lên <strong>Event Bus</strong>: <span class="text-green-600 bg-green-100 px-1 rounded">"Bắn lệnh call_service: light.turn_on!"</span>.</li>
+                        <li><strong>(Thực thi phần cứng)</strong> Integration Bóng Đèn đang đọc Group Chat, thấy tên mình bị gọi, nó vội vàng nhận lệnh và truyền tín hiệu WiFi để bật bóng đèn vật lý lên. Vòng lặp kết thúc trong vỏn vẹn 0.05 giây!</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- PHẦN 9: Automation -->
+            <section id="phan9" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 9: Engine Automation (Bộ não xử lý)</h2>
+                
+                <p class="text-gray-700 mb-4">Automation hoạt động theo một dòng chảy 3 bước khép kín và vô cùng nghiêm ngặt: <strong>Trigger ➔ Condition ➔ Action</strong>.</p>
+
+                <div class="bg-white p-6 rounded-lg shadow border border-gray-200 overflow-x-auto mb-8 text-center">
+                    <pre class="mermaid">
+                        flowchart LR
+                            A(["Bắt đầu (Ngủ đông)"]) --> B{"1. TRIGGER (Sự kiện)"}
+                            B -->|"Có tin trên Event Bus"| B_Check{"Khớp Sự kiện?"}
+                            B_Check -->|"Không khớp"| A
+                            B_Check -->|"Khớp chính xác!"| C{"2. CONDITION (Bộ lọc)"}
+                            C -->|"Thỏa mãn tất cả"| D["3. ACTION (Hành động)"]
+                            C -->|"Không thỏa mãn"| E(["Hủy kịch bản"])
+                            D -->|"call_service"| F(["Hoàn thành"])
+                            
+                            style B fill:#ffedd5,stroke:#c2410c
+                            style B_Check fill:#ffedd5,stroke:#c2410c
+                            style C fill:#dbeafe,stroke:#1d4ed8
+                            style D fill:#d1fae5,stroke:#047857
+                    </pre>
+                </div>
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-orange-50 border-l-4 border-orange-500 p-4">
+                        <h4 class="font-bold text-orange-700">1. TRIGGER (KHI NÀO?)</h4>
+                        <p class="text-sm text-gray-600">Sự kiện kích hoạt (Lắng nghe Event Bus). KHI cửa mở, KHI 10h tối. Nếu không có Trigger, kịch bản vĩnh viễn không chạy.</p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4">
+                        <h4 class="font-bold text-blue-700">2. CONDITION (ĐIỀU KIỆN)</h4>
+                        <p class="text-sm text-gray-600">Bộ lọc. NẾU độ sáng phòng dưới 20 lux, VÀ sau 22h. Nếu Nắng/Mưa không đúng ý đồ, luồng bị bóp nghẹt tại đây.</p>
+                    </div>
+                    <div class="bg-green-50 border-l-4 border-green-500 p-4">
+                        <h4 class="font-bold text-green-700">3. ACTION (LÀM GÌ?)</h4>
+                        <p class="text-sm text-gray-600">Ra lệnh <code>call_service</code> ném lại lên Event Bus để bật đèn, gửi tin nhắn tới Telegram.</p>
+                    </div>
+                </div>
+
+                <h3 class="font-bold mb-2">Ví dụ thực tế bằng mã nguồn YAML:</h3>
+                <p class="text-sm text-gray-600 mb-2">Dưới giao diện đồ họa, HA lưu trữ automation dưới định dạng code YAML:</p>
+<pre><code class="language-yaml">alias: "Bật đèn hành lang khi có người vào ban đêm"
+description: "Chỉ bật nếu trời tối và sau 22h, tự tắt sau 2 phút không có người"
+mode: restart # Nếu có chuyển động lại, đếm ngược 2 phút lại từ đầu
+
+trigger:
+  - platform: state
+    entity_id: binary_sensor.chuyen_dong_hanh_lang
+    to: 'on' # KHI CÓ CHUYỂN ĐỘNG
+
+condition:
+  - condition: time
+    after: '22:00:00' # VÀ SAU 22H ĐÊM
+  - condition: numeric_state
+    entity_id: sensor.do_sang_hanh_lang
+    below: 15 # VÀ TRỜI ĐANG TỐI (dưới 15 lux)
+
+action:
+  - service: light.turn_on
+    target:
+      entity_id: light.den_hanh_lang
+    data:
+      brightness: 30 # Bật đèn mờ mờ thôi (30%) để không chói mắt
+      
+  - delay: "00:02:00" # Đợi 2 phút
+  
+  - service: light.turn_off
+    target:
+      entity_id: light.den_hanh_lang # Tắt đèn
+</code></pre>
+            </section>
+
+            <!-- ===================== CHƯƠNG 3 ===================== -->
+
+            <!-- PHẦN 10: Ví dụ hoàn chỉnh -->
+            <section id="phan10" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 10: Ví dụ Hệ thống Hoàn Chỉnh (Giao tiếp chéo)</h2>
+                
+                <p class="text-gray-700 mb-6">Điều diệu kỳ của Home Assistant: Khóa cửa (Thread), Đèn (WiFi), Công tắc (Zigbee) và Điều hòa (Hồng ngoại). Ở thế giới ngoài chúng câm điếc với nhau. Dưới mái nhà HA, chúng làm việc theo kịch bản "Mừng Chủ Về Nhà" trong chưa tới 0.5 giây.</p>
+
+                <div class="bg-white p-4 rounded-lg shadow border border-gray-200 overflow-x-auto mb-8 text-center">
+                    <pre class="mermaid">
+                        flowchart LR
+                            subgraph Devices ["Lớp Thiết Bị Vật Lý Đa Hãng"]
+                                direction TB
+                                Lock["Khóa cửa thông minh<br/>Matter/Thread"]
+                                SW["Công tắc âm tường<br/>Zigbee - Aqara"]
+                                Temp["Cảm biến Nhiệt độ<br/>Zigbee - Xiaomi"]
+                                Light["Đèn trần đổi màu<br/>Matter/WiFi - Nanoleaf"]
+                                
+                                Sensors_ESP["Các cảm biến Rời<br/>(Hiện diện, Nhiệt/Ẩm)"]
+                                Board_ESP["Mạch điều khiển ESP32<br/>Nạp code ESPHome"]
+                                Sensors_ESP -->|"Đấu dây nối"| Board_ESP
+                                
+                                Cam["Camera An ninh<br/>Dây LAN - Hikvision"]
+                                RM4C["Cục phát Hồng ngoại<br/>WiFi - Broadlink"]
+                                AC["Điều hòa Daikin<br/>Chỉ nhận Remote"]
+                                
+                                RM4C -.->|"Tia Hồng ngoại"| AC
+                            end
+
+                            subgraph Gateways ["Lớp Mạng và Cửa Ngõ"]
+                                direction TB
+                                USB_T(("USB Thread Dongle"))
+                                USB_Z(("USB Zigbee Dongle"))
+                                Router(("Router WiFi và Switch"))
+                            end
+
+                            subgraph Brain ["Máy Chủ Ubuntu Docker"]
+                                direction TB
+                                OTBR["OpenThread Border Router"]
+                                Matter["Matter Server"]
+                                Z2M["Zigbee2MQTT"]
+                                MQTT["Mosquitto Broker"]
+                                HA(("Home Assistant Core"))
+                            end
+
+                            %% Luồng Thread
+                            Lock -.->|"Sóng Thread IPv6"| USB_T
+                            USB_T -->|"Cổng USB"| OTBR
+                            OTBR <--> Matter
+                            Matter -->|"Websocket"| HA
+
+                            %% Luồng Zigbee
+                            SW -.->|"Sóng Zigbee"| USB_Z
+                            Temp -.->|"Sóng Zigbee"| USB_Z
+                            USB_Z -->|"Cổng USB"| Z2M
+                            Z2M -->|"JSON"| MQTT
+                            MQTT <--> HA
+
+                            %% Luồng WiFi / LAN
+                            Light -.->|"Sóng WiFi"| Router
+                            Board_ESP -.->|"Sóng WiFi"| Router
+                            RM4C -.->|"Sóng WiFi"| Router
+                            Cam -->|"Dây cáp LAN"| Router
+
+                            Router -->|"Local API / RTSP"| HA
+                            Router -->|"Gói tin Matter"| Matter
+                            
+                            classDef core fill:#0284c7,stroke:#0369a1,stroke-width:4px,color:#fff,font-weight:bold
+                            class HA core
+                    </pre>
+                </div>
+
+                <div class="relative border-l-4 border-ha-blue ml-4 space-y-6 pb-4">
+                    <div class="relative">
+                        <div class="absolute -left-[1.35rem] bg-white w-8 h-8 rounded-full border-4 border-ha-blue flex items-center justify-center text-sm font-bold text-ha-blue">1</div>
+                        <div class="ml-6">
+                            <h4 class="font-bold text-lg text-gray-900">Trigger: Quét vân tay Khóa cửa</h4>
+                            <p class="text-sm text-gray-600">Sóng <strong>Thread</strong> đẩy qua USB ➔ Border Router ➔ Matter Server bắn Event: "Cửa mở".</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[1.35rem] bg-white w-8 h-8 rounded-full border-4 border-ha-blue flex items-center justify-center text-sm font-bold text-ha-blue">2</div>
+                        <div class="ml-6">
+                            <h4 class="font-bold text-lg text-gray-900">Condition: Kiểm tra Ngữ cảnh</h4>
+                            <p class="text-sm text-gray-600">Trời tối (ESPHome) + Trong nhà không ai có mặt (Ping điện thoại) ➔ Hợp lệ chạy Action.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[1.35rem] bg-white w-8 h-8 rounded-full border-4 border-ha-blue flex items-center justify-center text-sm font-bold text-ha-blue">3</div>
+                        <div class="ml-6">
+                            <h4 class="font-bold text-lg text-gray-900">Action: Bùng nổ phần cứng</h4>
+                            <p class="text-sm text-gray-600">
+                                - Lệnh 1 đi qua MQTT ➔ USB Zigbee: Bật công tắc điện Aqara.<br>
+                                - Lệnh 2 đi qua API mạng LAN: Giao Cục Broadlink bắn tia Hồng ngoại mở Điều hòa Daikin 24 độ.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PHẦN 11: Remote Access (Thực tế) -->
+            <section id="phan11" class="content-section">
+                <h2 class="text-3xl font-bold text-green-700 border-b-2 border-green-600 pb-2 mb-6">PHẦN 11: Đưa nhà lên Internet an toàn (Remote Access) ⭐</h2>
+                
+                <p class="text-gray-700 mb-4">Hệ thống của bạn chạy Local 100%, tuyệt vời! Nhưng khi ở công ty, làm sao để mở app trên điện thoại 4G và xem Camera? Bạn cần "đục một lỗ" xuyên qua Router mạng nhà bạn một cách bảo mật nhất.</p>
+
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <h4 class="font-bold text-red-800 text-sm mb-2">❌ Mở Port (Port Forwarding)</h4>
+                        <p class="text-xs text-gray-700">Mở cổng 8123 thẳng trên Modem nhà mạng kèm DuckDNS. <strong>Nguy hiểm:</strong> Các botnet quét liên tục, dễ bị hacker dò mật khẩu chiếm quyền nhà.</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h4 class="font-bold text-yellow-800 text-sm mb-2">⚠️ VPN / Tailscale</h4>
+                        <p class="text-xs text-gray-700">Cực kỳ bảo mật vì không mở port. Nhưng <strong>bất tiện:</strong> Mỗi lần muốn bật cái đèn phải mất 5 giây mở app VPN lên kết nối trước, rất phiền cho vợ con.</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-500 shadow-md transform scale-105">
+                        <div class="text-[10px] bg-green-500 text-white font-bold uppercase inline-block px-2 py-0.5 rounded mb-1">Khuyên dùng cho Docker</div>
+                        <h4 class="font-bold text-green-900 text-sm mb-2">✅ Cloudflare Tunnels</h4>
+                        <p class="text-xs text-gray-700">Tạo một Container "Cloudflared" nhỏ xíu. Nó đào một "đường hầm" an toàn từ bên trong Ubuntu kết nối thẳng ra máy chủ Cloudflare. Mở app bấm là ăn ngay, miễn phí, ẩn hoàn toàn IP nhà bạn trước Hacker.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PHẦN 12 -->
+            <section id="phan12" class="content-section">
+                <h2 class="text-3xl font-bold text-gray-900 border-b-2 border-ha-blue pb-2 mb-6">PHẦN 12: Lộ trình từ Lính mới đến Chuyên gia</h2>
+                
+                <div class="relative border-l-4 border-gray-200 ml-4 space-y-6 pb-4">
+                    <div class="relative">
+                        <div class="absolute -left-[1.35rem] bg-gray-200 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center text-sm font-bold text-gray-600">1</div>
+                        <div class="ml-6">
+                            <h3 class="font-bold text-lg text-gray-800">Cơ bản (Vượt qua cú sốc đầu đời)</h3>
+                            <p class="text-sm text-gray-600">Cài Ubuntu & Docker. Cài Core. Thêm TV/Camera qua WiFi LAN có sẵn.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[1.35rem] bg-ha-blue w-8 h-8 rounded-full border-4 border-white flex items-center justify-center text-sm font-bold text-white">2</div>
+                        <div class="ml-6">
+                            <h3 class="font-bold text-lg text-ha-blue">Bước đệm: Thế giới Radio</h3>
+                            <p class="text-sm text-gray-600">Cắm USB Zigbee. Map thiết bị vào <code>docker-compose</code>. Viết Automation đầu tiên.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[1.35rem] bg-orange-500 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center text-sm font-bold text-white">3</div>
+                        <div class="ml-6">
+                            <h3 class="font-bold text-lg text-orange-600">Nâng cao: Giao diện & ESPHome</h3>
+                            <p class="text-sm text-gray-600">Nạp code chip ESP32 chế cảm biến. Dựng Dashboard siêu đẹp. Thiết lập Cloudflare Tunnels ra mạng ngoài.</p>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[1.35rem] bg-purple-600 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center text-sm font-bold text-white">4</div>
+                        <div class="ml-6">
+                            <h3 class="font-bold text-lg text-purple-700">Chuyên gia: Dữ liệu & AI</h3>
+                            <p class="text-sm text-gray-600">Thay đổi Data lưu trữ qua MariaDB. Lắp InfluxDB+Grafana vẽ biểu đồ điện. Dùng Frigate nhận diện AI Camera (Person detection).</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Kết luận -->
+            <footer class="mt-16 p-8 bg-gray-900 text-white rounded-xl text-center shadow-2xl">
+                <h2 class="text-2xl font-bold mb-4">Kết Luận</h2>
+                <p class="text-gray-300 max-w-2xl mx-auto mb-6">Home Assistant không phải là một ứng dụng cài vào điện thoại để bật cái bóng đèn. Nó là một <strong>hệ điều hành (OS) cho ngôi nhà của bạn</strong>. Tài liệu này được sinh ra để giúp bạn có tư duy kỹ thuật nền tảng vững chắc nhất trước khi gõ dòng code cấu hình máy chủ đầu tiên.</p>
+                <div class="text-sm text-gray-500 font-mono">End of Document. Welcome to the Rabbit Hole.</div>
+            </footer>
+
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'base' });
+    </script>
+    <script>
+        const mainContent = document.getElementById('main-content');
+        
+        mainContent.addEventListener('scroll', () => {
+        });
+    </script>
+</body>
+</html>
