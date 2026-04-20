@@ -606,7 +606,7 @@ services:
                             <span class="bg-teal-100 text-teal-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">3</span>
                             Luồng Matter over WiFi
                         </h4>
-                        <p class="text-sm text-gray-700"><strong>Đường đi:</strong> Thiết bị ➔ (Sóng WiFi) ➔ <strong>Router WiFi</strong> nhà bạn (Bỏ qua USB và bỏ qua container OTBR) ➔ Container <strong>Matter Server</strong> (Xác thực thiết bị Matter trên mạng LAN) ➔ Container <strong>HA Core</strong>.</p>
+                        <p class="text-sm text-gray-700"><strong>Đường đi:</strong> Thiết bị ➔ (Sóng WiFi) ➔ <strong>Router WiFi</strong> ➔ (mạng LAN / IPv6) ➔ Container <strong>Matter Server</strong> (Giải mã và xử lý matter) ➔ Container <strong>HA Core</strong>.</p>
                     </div>
 
                     <!-- Luồng 4 -->
@@ -616,9 +616,9 @@ services:
                             Luồng ESPHome (Cài qua Container)
                         </h4>
                         <div class="space-y-3 text-sm text-gray-700">
-                            <p><strong>Giai đoạn 1: Lập trình & Nạp Code:</strong> Container <strong>ESPHome Dashboard</strong> mà bạn cài trên Docker đóng vai trò là phần mềm quản lý. Nó biên dịch code YAML thành Firmware và nạp qua sóng WiFi (OTA) thẳng vào chip ESP32.</p>
-                            <p><strong>Giai đoạn 2: Vận hành (Data Flow):</strong> Sau khi nạp code, con chip ESP32 đã có "não". Lúc này đường đi là: Cảm biến vật lý ➔ Chip ESP32 xử lý ➔ (Sóng WiFi) ➔ Router WiFi ➔ <strong>Gửi trực tiếp vào Container HA Core qua Native API</strong>.</p>
-                            <p class="text-orange-700 italic text-xs font-semibold">Lưu ý: Dữ liệu vận hành KHÔNG chạy qua Container ESPHome Dashboard nữa. Tốc độ gửi qua Native API là tức thời (dưới 10ms).</p>
+                            <p><strong>Giai đoạn 1: Viết và nạp chương trình:</strong> ESPHome Dashboard trên Docker giống như một cái bàn làm việc. Bạn viết file YAML, nó sẽ biến thành firmware để nạp vào ESP32. Lần đầu thường phải cắm USB; sau khi đã nạp xong và bật OTA, những lần cập nhật sau có thể gửi qua WiFi.</p>
+                            <p><strong>Giai đoạn 2: Thiết bị chạy bình thường:</strong> Khi ESP32 đã có firmware, nó tự đọc cảm biến và tự điều khiển rơ-le. Đường đi lúc này là: Cảm biến ➔ ESP32 đọc và xử lý ➔ kết nối WiFi vào LAN ➔ thiết lập kết nối TCP với <strong>Home Assistant</strong> (dùng giao thức Native API của ESPHome (định nghĩa sẵn, sử dụng Protocol Buffers) để gửi và nhận dữ liệu)
+                            <p class="text-orange-700 italic text-xs font-semibold">Hiểu đơn giản: Dashboard chỉ dùng để cấu hình và nạp code, còn lúc vận hành thì ESP32 nói chuyện trực tiếp với Home Assistant trên mạng nội bộ. Vì vậy phản hồi rất nhanh.</p>
                         </div>
                     </div>
 
@@ -797,11 +797,12 @@ services:
                     
                     <!-- Box Phân tích ESPHome -->
                     <div class="bg-orange-50 p-5 rounded-lg border-l-4 border-orange-500 text-sm text-gray-800 shadow-inner">
-                        <h4 class="font-bold text-orange-900 mb-2 text-base">🔎 Phân tích kỹ thuật chuyên sâu: Sức mạnh của Native API</h4>
+                        <h4 class="font-bold text-orange-900 mb-2 text-base">🔎 Native API hoạt động thế nào?</h4>
                         <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Khái niệm Socket Connection:</strong> Ngay khi khởi động, mạch ESP32 thiết lập một kết nối <code>TCP Socket</code> 2 chiều liên tục với Home Assistant. Nhờ không phải thiết lập lại bắt tay (TCP Handshake) mỗi lần gửi lệnh, tốc độ phản hồi gần như là thời gian thực (Real-time).</li>
-                            <li><strong>Tại sao không dùng JSON?</strong> Chuỗi JSON chứa rất nhiều ký tự thừa (như ngoặc <code>{}</code>, dấu <code>,</code>). Việc chuyển đổi chuỗi JSON làm tốn CPU của vi điều khiển. ESPHome sử dụng <strong>Protocol Buffers (Protobuf)</strong> do Google phát triển. Dữ liệu bị nén thành một mảng nhị phân (byte array) siêu gọn nhẹ, dung lượng chỉ bằng 1/10 JSON, giúp hệ thống không bao giờ bị tràn RAM.</li>
+                            <li><strong>Kết nối luôn mở:</strong> ESP32 giữ một đường liên lạc TCP ổn định với Home Assistant. Vì không phải kết nối lại mỗi lần bấm nút, lệnh được gửi đi rất nhanh.</li>
+                            <li><strong>Nhẹ hơn JSON:</strong> ESPHome không gửi dữ liệu kiểu chữ dài dòng như JSON, mà dùng dữ liệu nhị phân gọn hơn. Nhờ vậy ESP32 đỡ tốn tài nguyên và phản hồi mượt hơn.</li>
                         </ul>
+                        <p class="mt-3 text-xs text-orange-800">Hiểu đơn giản: Native API là đường để ESP32 nói chuyện trực tiếp với Home Assistant qua Wi‑Fi trong nhà, nên báo trạng thái và nhận lệnh rất nhanh.</p>
                     </div>
                 </div>
 
