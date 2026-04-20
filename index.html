@@ -597,7 +597,7 @@ services:
                             <span class="bg-purple-100 text-purple-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">2</span>
                             Luồng Matter over Thread (Qua USB Thread)
                         </h4>
-                        <p class="text-sm text-gray-700"><strong>Đường đi cực kỳ chặt chẽ:</strong> Thiết bị ➔ (Sóng Radio Thread) ➔ USB Thread ➔ Container <strong>OTBR</strong> (Đóng vai trò cầu nối, biến mạng Thread thành mạng IPv6 LAN để máy tính hiểu được) ➔ Container <strong>Matter Server</strong> (Xác thực bảo mật và dịch ngôn ngữ Matter) ➔ Container <strong>HA Core</strong>.</p>
+                        <p class="text-sm text-gray-700"><strong>Đường đi cực kỳ chặt chẽ:</strong> Thiết bị ➔ (Sóng Radio Thread) ➔ USB Thread ➔ Container <strong>OTBR</strong> (Đóng vai trò cầu nối, bridge IPv6 Thread sang IPv6 LAN) ➔ Container <strong>Matter Server</strong> (Giải mã và xử lý) ➔ Container <strong>HA Core</strong>.</p>
                     </div>
 
                     <!-- Luồng 3 -->
