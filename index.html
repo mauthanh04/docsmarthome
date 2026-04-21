@@ -628,7 +628,7 @@ services:
                             <span class="bg-red-100 text-red-800 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-sm">5</span>
                             Luồng Cục điều khiển hồng ngoại RM4C
                         </h4>
-                        <p class="text-sm text-gray-700"><strong>Đường đi:</strong> HA Core ➔ Gửi API qua mạng LAN ➔ Router WiFi ➔ Cục Broadlink RM4C ➔ Phóng tia hồng ngoại (IR) ➔ TV/Điều hòa nhận lệnh (Luồng này là giao tiếp 1 chiều, HA không biết TV đang thực sự bật hay tắt nếu dùng remote tay tác động).</p>
+                        <p class="text-sm text-gray-700"><strong>Đường đi:</strong> HA Core ➔ Gửi lệnh qua mạng LAN/WiFi ➔ Router chuyển tiếp tín hiệu tới Cục Broadlink RM4C ➔ RM4C phóng tia hồng ngoại (IR) ➔ TV/Điều hòa nhận lệnh (Luồng này là giao tiếp 1 chiều, nên nếu dùng remote tay thì HA không biết trạng thái thực tế đang bật hay tắt).</p>
                     </div>
                 </div>
 
@@ -665,20 +665,21 @@ services:
                                         participant HA as HA Core (MQTT)
         
                                         Sensor->>USB: [IEEE 802.15.4] Gửi Data Frame
-                                        USB->>Z2M: [Serial] Khung nhị phân (Baud 115200)
+                                        Note over Sensor,USB: Có thể đi qua Router Zigbee trung gian (Mesh)
+                                        USB->>Z2M: [Serial] Khung nhị phân (baudrate tùy adapter)
                                         Note over Z2M: Dịch nhị phân thành JSON
                                         Z2M->>MQTT: [TCP Port 1883] PUBLISH lên Topic
-                                        MQTT->>HA: [TCP Port 1883] PUSH message
+                                        MQTT->>HA: [TCP Port 1883] Chuyển cho client đã SUBSCRIBE
                                 </pre>
                             </div>
                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                                 <h4 class="font-bold text-blue-900 text-sm mb-2">📝 Diễn giải từng bước (Uplink):</h4>
                                 <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
-                                    <li><strong>Cảm biến</strong> phát sóng Radio (chuẩn IEEE 802.15.4) mang dữ liệu cửa mở.</li>
-                                    <li><strong>USB Dongle</strong> thu sóng, truyền dữ liệu nhị phân thô qua cáp USB (cổng Serial UART) vào máy tính.</li>
+                                    <li><strong>Cảm biến</strong> phát sóng Radio (chuẩn IEEE 802.15.4) mang dữ liệu cửa mở. Trong mạng Mesh, gói tin có thể đi qua Router Zigbee trung gian trước khi tới Coordinator.</li>
+                                    <li><strong>USB Dongle</strong> thu sóng, truyền dữ liệu nhị phân thô qua cổng Serial ảo (USB-Serial) vào máy tính.</li>
                                     <li>Container <strong>Zigbee2MQTT</strong> nhận chuỗi nhị phân, giải mã (dùng thư viện ZCL) và dịch thành định dạng chữ JSON dễ hiểu (vd: <code>{"contact":false}</code>).</li>
                                     <li><strong>Zigbee2MQTT</strong> gửi (Publish) gói JSON này lên trạm trung chuyển <strong>Mosquitto MQTT Broker</strong>.</li>
-                                    <li><strong>MQTT Broker</strong> lập tức đẩy (Push) dữ liệu JSON đó vào thẳng <strong>HA Core</strong> để xử lý hiển thị.</li>
+                                    <li><strong>MQTT Broker</strong> chuyển bản tin đó cho các client đã <strong>subscribe</strong> topic (trong đó có <strong>HA Core</strong>) để xử lý hiển thị.</li>
                                 </ol>
                             </div>
                         </div>
@@ -697,11 +698,11 @@ services:
                                         participant Light as Đèn Zigbee
         
                                         HA->>MQTT: [TCP Port 1883] PUBLISH lệnh JSON
-                                        MQTT->>Z2M: [TCP Port 1883] PUSH tới Z2M
+                                        MQTT->>Z2M: [TCP Port 1883] Chuyển cho Z2M (đã SUBSCRIBE)
                                         Note over Z2M: Dịch JSON thành nhị phân ZCL
                                         Z2M->>USB: [Serial] Đẩy lệnh xuống vi điều khiển
                                         USB->>Light: [IEEE 802.15.4] Phóng sóng tới Đèn
-                                        Light-->>USB: [IEEE 802.15.4] Trả về gói ACK
+                                        Light-->>USB: [IEEE 802.15.4] ACK lớp MAC
                                 </pre>
                             </div>
                             <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
@@ -711,7 +712,7 @@ services:
                                     <li><strong>MQTT Broker</strong> chuyển tiếp lệnh JSON này đến cho <strong>Zigbee2MQTT</strong>.</li>
                                     <li><strong>Zigbee2MQTT</strong> làm nhiệm vụ dịch ngược JSON thành mã lệnh nhị phân thô.</li>
                                     <li>Mã lệnh nhị phân được bơm qua cáp Serial xuống phần cứng <strong>USB Dongle</strong>.</li>
-                                    <li><strong>USB Dongle</strong> biến đổi lệnh điện thành sóng vô tuyến và phát thẳng tới <strong>bóng đèn</strong>. Bóng đèn sáng và gửi lại sóng phản hồi (ACK).</li>
+                                    <li><strong>USB Dongle</strong> biến đổi lệnh điện thành sóng vô tuyến và phát tới <strong>bóng đèn</strong>. Bóng đèn gửi ACK ở tầng radio/MAC; để biết trạng thái thực sự, hệ thống vẫn cần bản tin state báo ngược về.</li>
                                 </ol>
                             </div>
                         </div>
@@ -722,7 +723,7 @@ services:
                         <h4 class="font-bold text-gray-900 mb-2 text-base">🔎 Phân tích kỹ thuật chuyên sâu: Giao thức MQTT & Cổng Serial</h4>
                         <ul class="list-disc pl-5 space-y-2">
                             <li><strong>Lớp Vật lý (Physical Layer):</strong> Tín hiệu truyền đi trên không trung là các gói tin tiêu chuẩn <code>IEEE 802.15.4</code> (hoạt động ở băng tần 2.4GHz). Cục USB Coordinator đóng vai trò bắt các gói tin này và chuyển chúng thành tín hiệu điện.</li>
-                            <li><strong>Giao tiếp UART (Serial):</strong> USB giao tiếp với phần mềm Zigbee2MQTT (Z2M) thông qua một cổng Serial ảo (ví dụ: <code>/dev/ttyUSB0</code>) với tốc độ Baudrate thường là 115200. Ngôn ngữ giao tiếp ở đây là các giao thức nhị phân của nhà sản xuất chip (như <code>Z-Stack</code> của Texas Instruments).</li>
+                            <li><strong>Giao tiếp UART (Serial):</strong> USB giao tiếp với phần mềm Zigbee2MQTT (Z2M) thông qua một cổng Serial ảo (ví dụ: <code>/dev/ttyUSB0</code>). Baudrate tùy firmware/adapter (thường gặp 115200). Ngôn ngữ giao tiếp ở đây là các giao thức nhị phân của nhà sản xuất chip (như <code>Z-Stack</code> của Texas Instruments).</li>
                             <li><strong>Zigbee Cluster Library (ZCL):</strong> Z2M là "thông dịch viên". Nó đọc mã nhị phân ZCL thô, nhận diện cụm lệnh, sau đó đóng gói lại (Serialize) thành định dạng văn bản <code>JSON</code> dễ đọc.</li>
                         </ul>
                     </div>
@@ -749,18 +750,18 @@ services:
                                         participant HA as HA Core
         
                                         DHT->>ESP: Tín hiệu điện áp GPIO
-                                        Note over ESP: Đóng gói Protocol Buffers
+                                        Note over ESP: Serialize dữ liệu bằng Protobuf
                                         ESP->>Router: Truyền gói tin TCP/IP
-                                        Router->>HA: Đẩy thẳng vào Port 6053
+                                        Router->>HA: Đẩy thẳng vào Port 6053 (mặc định)
                                 </pre>
                             </div>
                             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                                 <h4 class="font-bold text-blue-900 text-sm mb-2">📝 Diễn giải từng bước (Uplink):</h4>
                                 <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
                                     <li>Cảm biến vật lý gửi tín hiệu điện áp vào các chân GPIO của vi điều khiển <strong>ESP32</strong>.</li>
-                                    <li><strong>ESP32</strong> số hóa tín hiệu và đóng gói nó bằng công nghệ nén <strong>Protocol Buffers (Protobuf)</strong> của Google.</li>
-                                    <li><strong>ESP32</strong> truyền gói tin Protobuf siêu nhỏ qua sóng <strong>WiFi</strong> đến <strong>Router</strong>.</li>
-                                    <li><strong>Router</strong> định tuyến gói tin chạy thẳng vào socket liên tục (Port 6053) của <strong>HA Core</strong>. Bỏ qua hoàn toàn trạm trung chuyển trung gian. Core dịch Protobuf và hiển thị tức thì.</li>
+                                    <li><strong>ESP32</strong> số hóa tín hiệu và serialize thành dữ liệu nhị phân gọn bằng <strong>Protocol Buffers (Protobuf)</strong>.</li>
+                                    <li><strong>ESP32</strong> truyền gói tin Protobuf qua mạng nội bộ (<strong>WiFi</strong> hoặc <strong>Ethernet</strong>) đến <strong>Router/Switch</strong>.</li>
+                                    <li><strong>Router/Switch</strong> định tuyến gói tin thẳng vào kết nối Native API của <strong>HA Core</strong> (mặc định Port 6053). Luồng này không qua MQTT hay cloud trung gian.</li>
                                 </ol>
                             </div>
                         </div>
@@ -777,8 +778,8 @@ services:
                                         participant ESP as Chip ESP32
                                         participant Relay as Rơ-le Bơm
         
-                                        HA->>Router: Gửi lệnh Protobuf (Port 6053)
-                                        Router->>ESP: Truyền WiFi tới IP của ESP32
+                                        HA->>Router: Gửi lệnh Protobuf (Port 6053 mặc định)
+                                        Router->>ESP: Truyền LAN tới IP của ESP32
                                         Note over ESP: Giải mã Protobuf tức thì
                                         ESP->>Relay: Cấp điện áp mức HIGH bật Rơ-le
                                 </pre>
@@ -786,8 +787,8 @@ services:
                             <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
                                 <h4 class="font-bold text-orange-900 text-sm mb-2">📝 Diễn giải từng bước (Downlink):</h4>
                                 <ol class="list-decimal pl-5 text-sm text-gray-700 space-y-1">
-                                    <li><strong>Home Assistant</strong> nén lệnh điều khiển thành một mảng nhị phân Protobuf cực nhỏ và đẩy vào mạng nội bộ.</li>
-                                    <li><strong>Router WiFi</strong> phân phối cục nhị phân đó đến đúng địa chỉ IP của chip <strong>ESP32</strong> qua sóng vô tuyến.</li>
+                                    <li><strong>Home Assistant</strong> serialize lệnh điều khiển thành dữ liệu Protobuf và gửi vào mạng nội bộ.</li>
+                                    <li><strong>Router/Switch</strong> phân phối gói dữ liệu đó đến đúng địa chỉ IP của <strong>ESP32</strong> trong LAN (qua WiFi hoặc Ethernet).</li>
                                     <li><strong>ESP32</strong> nhận được, giải mã nội dung tức thì (do không phải parse chuỗi JSON dài dòng, không tốn RAM).</li>
                                     <li><strong>ESP32</strong> xuất điện áp 3.3V ra chân GPIO tương ứng để đóng <strong>Rơ-le vật lý</strong> (phát ra tiếng kêu "tạch" gần như cùng lúc bạn bấm app).</li>
                                 </ol>
@@ -799,10 +800,10 @@ services:
                     <div class="bg-orange-50 p-5 rounded-lg border-l-4 border-orange-500 text-sm text-gray-800 shadow-inner">
                         <h4 class="font-bold text-orange-900 mb-2 text-base">🔎 Native API hoạt động thế nào?</h4>
                         <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Kết nối luôn mở:</strong> ESP32 giữ một đường liên lạc TCP ổn định với Home Assistant. Vì không phải kết nối lại mỗi lần bấm nút, lệnh được gửi đi rất nhanh.</li>
+                            <li><strong>Kết nối luôn mở:</strong> ESP32 giữ một đường liên lạc TCP ổn định với Home Assistant. Khi mạng chập chờn, thiết bị sẽ tự reconnect; nhờ không phải bắt tay lại mỗi lần bấm nút nên lệnh đi rất nhanh.</li>
                             <li><strong>Nhẹ hơn JSON:</strong> ESPHome không gửi dữ liệu kiểu chữ dài dòng như JSON, mà dùng dữ liệu nhị phân gọn hơn. Nhờ vậy ESP32 đỡ tốn tài nguyên và phản hồi mượt hơn.</li>
                         </ul>
-                        <p class="mt-3 text-xs text-orange-800">Hiểu đơn giản: Native API là đường để ESP32 nói chuyện trực tiếp với Home Assistant qua Wi‑Fi trong nhà, nên báo trạng thái và nhận lệnh rất nhanh.</p>
+                        <p class="mt-3 text-xs text-orange-800">Hiểu đơn giản: Native API là đường để ESP32 nói chuyện trực tiếp với Home Assistant trong mạng LAN (WiFi hoặc Ethernet), nên báo trạng thái và nhận lệnh rất nhanh.</p>
                     </div>
                 </div>
 
