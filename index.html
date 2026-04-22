@@ -876,7 +876,7 @@ services:
                                     <li><strong>Matter Server</strong> dùng chìa khóa phiên bản mật (Session Key) để đóng băng, mã hóa lệnh mở cửa, không cho ai trong mạng LAN có thể đọc được.</li>
                                     <li>Gói tin đi trên LAN tới trạm <strong>OTBR</strong>. Trạm nhồi ép gói tin IPv6 cho mỏng lại (chuẩn 6LoWPAN) để chui vừa bước sóng radio chậm.</li>
                                     <li>Gói tin được đẩy xuống phần cứng <strong>USB Thread</strong>.</li>
-                                    <li><strong>USB Thread</strong> phát sóng chứa gói tin mã hóa bay đập thẳng vào đích đến là <strong>Khóa cửa</strong>. Khóa dùng chìa Private Key để tự giải mã và mở chốt.</li>
+                                    <li><strong>USB Thread</strong> phát sóng chứa gói tin mã hóa bay đập thẳng vào đích đến là <strong>Khóa cửa</strong>. Khóa dùng chìa Session Key (được thiết lập lúc pairing) để tự giải mã và mở chốt.</li>
                                 </ol>
                             </div>
                         </div>
